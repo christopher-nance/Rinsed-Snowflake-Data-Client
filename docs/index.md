@@ -33,10 +33,10 @@ with RinsedClient() as client:
 ## Installation
 
 ```bash
-pip install rinsed-snowflake-client
+pip install git+https://github.com/christopher-nance/Rinsed-Snowflake-Data-Client.git
 ```
 
-Or from source:
+Or from source for development:
 
 ```bash
 git clone https://github.com/christopher-nance/Rinsed-Snowflake-Data-Client.git

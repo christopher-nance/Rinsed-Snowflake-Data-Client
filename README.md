@@ -5,12 +5,14 @@ Python client for WashU Carwash Rinsed CRM data in Snowflake.
 ## Installation
 
 ```bash
-pip install rinsed-snowflake-client
+pip install git+https://github.com/christopher-nance/Rinsed-Snowflake-Data-Client.git
 ```
 
-Or install from source:
+Or install from source for development:
 
 ```bash
+git clone https://github.com/christopher-nance/Rinsed-Snowflake-Data-Client.git
+cd Rinsed-Snowflake-Data-Client
 pip install -e ".[dev]"
 ```
 

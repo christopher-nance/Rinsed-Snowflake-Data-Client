@@ -3,7 +3,7 @@
 ## Installation
 
 ```bash
-pip install rinsed-snowflake-client
+pip install git+https://github.com/christopher-nance/Rinsed-Snowflake-Data-Client.git
 ```
 
 Or install from source for development:
