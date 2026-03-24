@@ -18,6 +18,7 @@ from rinsed_snowflake_client.types import (
     MembershipRevenueResult,
     MembershipSalesResult,
     RevenueResult,
+    Site,
     StatsReport,
 )
 
@@ -39,6 +40,7 @@ __all__ = [
     "MembershipRevenueResult",
     "MembershipSalesResult",
     "RevenueResult",
+    "Site",
     "StatsReport",
     # Version
     "__version__",

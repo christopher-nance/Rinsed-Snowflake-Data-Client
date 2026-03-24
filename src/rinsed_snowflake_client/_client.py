@@ -9,6 +9,7 @@ import pandas as pd
 
 from rinsed_snowflake_client._config import SnowflakeConfig
 from rinsed_snowflake_client._connection import RinsedConnection
+from rinsed_snowflake_client.resources._sites import SitesResource
 from rinsed_snowflake_client.resources._stats import StatsResource
 
 
@@ -68,6 +69,11 @@ class RinsedClient:
             )
 
         self._conn: RinsedConnection | None = None
+
+    @functools.cached_property
+    def sites(self) -> SitesResource:
+        """Location/site listing methods."""
+        return SitesResource(self)
 
     @functools.cached_property
     def stats(self) -> StatsResource:

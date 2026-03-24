@@ -1,6 +1,7 @@
 """Public type exports."""
 
 from rinsed_snowflake_client.types._base import RinsedModel
+from rinsed_snowflake_client.types._sites import Site
 from rinsed_snowflake_client.types._stats import (
     AWPResult,
     CarCountResult,
@@ -23,5 +24,6 @@ __all__ = [
     "MembershipSalesResult",
     "RevenueResult",
     "RinsedModel",
+    "Site",
     "StatsReport",
 ]

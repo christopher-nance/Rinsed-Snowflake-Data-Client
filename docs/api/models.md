@@ -1,6 +1,10 @@
 # Models
 
-All KPI methods return typed Pydantic models.
+All methods return typed Pydantic models.
+
+## Site
+
+::: rinsed_snowflake_client.Site
 
 ## LocationMetric
 
