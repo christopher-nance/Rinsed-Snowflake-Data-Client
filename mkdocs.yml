@@ -51,6 +51,7 @@ nav:
       - Stats & KPIs: guides/stats.md
       - Churn Rates: guides/churn.md
       - Raw Queries: guides/raw-queries.md
+      - Error Handling: guides/error-handling.md
   - API Reference:
       - Client: api/client.md
       - Models: api/models.md
