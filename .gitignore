@@ -36,5 +36,8 @@ htmlcov/
 *.xlsx
 *.pdf
 
+# MkDocs build
+site/
+
 # Claude
 .claude/

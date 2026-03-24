@@ -1,0 +1,57 @@
+site_name: Rinsed Snowflake Data Client
+site_description: Python client for WashU Carwash Rinsed CRM data in Snowflake
+site_url: https://christopher-nance.github.io/Rinsed-Snowflake-Data-Client/
+repo_url: https://github.com/christopher-nance/Rinsed-Snowflake-Data-Client
+repo_name: christopher-nance/Rinsed-Snowflake-Data-Client
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: blue
+    accent: light blue
+  features:
+    - content.code.copy
+    - content.tabs.link
+    - navigation.expand
+    - navigation.sections
+    - search.highlight
+    - search.suggest
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            show_source: false
+            show_root_heading: true
+            heading_level: 2
+            docstring_style: google
+            merge_init_into_class: true
+            show_signature_annotations: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Guides:
+      - Getting Started: guides/getting-started.md
+      - Stats & KPIs: guides/stats.md
+      - Churn Rates: guides/churn.md
+      - Raw Queries: guides/raw-queries.md
+  - API Reference:
+      - Client: api/client.md
+      - Models: api/models.md
+      - Exceptions: api/exceptions.md
