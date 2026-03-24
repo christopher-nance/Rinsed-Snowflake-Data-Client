@@ -43,11 +43,16 @@ class MembershipRevenueResult(RinsedModel):
 class AWPResult(RinsedModel):
     """Average Wash Price (retail ticket average)."""
 
-    awp: float
+    total: float
     retail_revenue: float
     retail_car_count: int
     period_start: str
     period_end: str
+
+    @property
+    def awp(self) -> float:
+        """Alias for total — the average wash price."""
+        return self.total
 
 
 class MembershipSalesResult(RinsedModel):

@@ -132,7 +132,7 @@ class StatsResource:
         cars = self.retail_car_count(start, end, locations)
         awp = rev.total / cars.total if cars.total > 0 else 0.0
         return AWPResult(
-            awp=round(awp, 2),
+            total=round(awp, 2),
             retail_revenue=rev.total,
             retail_car_count=cars.total,
             period_start=str(start),
