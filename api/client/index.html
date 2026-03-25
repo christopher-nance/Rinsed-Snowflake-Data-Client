@@ -784,10 +784,32 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#rinsed_snowflake_client.resources.StatsResource.cancellations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cancellations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#rinsed_snowflake_client.resources.StatsResource.conversion_rate" class="md-nav__link">
     <span class="md-ellipsis">
       
         conversion_rate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rinsed_snowflake_client.resources.StatsResource.daily_churn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        daily_churn
       
     </span>
   </a>
@@ -1175,10 +1197,32 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#rinsed_snowflake_client.resources.StatsResource.cancellations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cancellations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#rinsed_snowflake_client.resources.StatsResource.conversion_rate" class="md-nav__link">
     <span class="md-ellipsis">
       
         conversion_rate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rinsed_snowflake_client.resources.StatsResource.daily_churn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        daily_churn
       
     </span>
   </a>
@@ -1828,6 +1872,26 @@ the <code>WEB_INGRESS.LOCATIONS</code> table.</p>
 <div class="doc doc-object doc-function">
 
 
+<h3 id="rinsed_snowflake_client.resources.StatsResource.cancellations" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">cancellations</span><span class="p">(</span><span class="n">start</span><span class="p">:</span> <span class="n">DateInput</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">DateInput</span><span class="p">,</span> <span class="n">locations</span><span class="p">:</span> <span class="n">Locations</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DailyCancellationResult</span></code>
+
+<a href="#rinsed_snowflake_client.resources.StatsResource.cancellations" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Daily cancellation counts (voluntary + involuntary).</p>
+<p>Uses Rinsed's real-time churn_date — the day the cancellation
+or expiry was recorded, not WashU's shifted billing-cycle definition.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
 <h3 id="rinsed_snowflake_client.resources.StatsResource.conversion_rate" class="doc doc-heading">
             <code class="highlight language-python"><span class="n">conversion_rate</span><span class="p">(</span><span class="n">start</span><span class="p">:</span> <span class="n">DateInput</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">DateInput</span><span class="p">,</span> <span class="n">locations</span><span class="p">:</span> <span class="n">Locations</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ConversionResult</span></code>
 
@@ -1837,6 +1901,27 @@ the <code>WEB_INGRESS.LOCATIONS</code> table.</p>
     <div class="doc doc-contents ">
 
         <p>Conversion rate = sales / eligible washes (from CONVERSION_DAILY).</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="rinsed_snowflake_client.resources.StatsResource.daily_churn" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">daily_churn</span><span class="p">(</span><span class="n">start</span><span class="p">:</span> <span class="n">DateInput</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">DateInput</span><span class="p">,</span> <span class="n">locations</span><span class="p">:</span> <span class="n">Locations</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DailyChurnResult</span></code>
+
+<a href="#rinsed_snowflake_client.resources.StatsResource.daily_churn" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Daily churn counts with rate context.</p>
+<p>Same daily data as cancellations(), plus the active member
+denominator for computing an overall churn rate for the period.
+Uses Rinsed's real-time churn_date for the daily breakdown.</p>
 
 
     </div>
