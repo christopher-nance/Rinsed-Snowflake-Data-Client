@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1 — 2026-03-25
+
+### Changed
+- Added Wash Associates Business Internal Use License 1.0 (matching Sonny's Data API Client)
+- Updated pyproject.toml license reference
+
 ## 0.3.0 — 2026-03-24
 
 ### Added

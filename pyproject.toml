@@ -4,11 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "rinsed-snowflake-client"
-version = "0.3.0"
+version = "0.3.1"
 description = "Python client for WashU Carwash Rinsed CRM data in Snowflake"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "Proprietary" }
+license = { file = "LICENSE" }
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
