@@ -87,6 +87,41 @@ class ChurnResult(RinsedModel):
     period_end: str
 
 
+class DailyCancellation(RinsedModel):
+    """Cancellation counts for a single day."""
+
+    date: str
+    voluntary: int
+    involuntary: int
+    total: int
+
+
+class DailyCancellationResult(RinsedModel):
+    """Daily cancellation counts over a date range."""
+
+    total: int
+    total_voluntary: int
+    total_involuntary: int
+    days: list[DailyCancellation]
+    by_location: list[LocationMetric]
+    period_start: str
+    period_end: str
+
+
+class DailyChurnResult(RinsedModel):
+    """Daily churn counts with rate context."""
+
+    total_churned: int
+    total_voluntary: int
+    total_involuntary: int
+    starting_count: int
+    rate: float
+    days: list[DailyCancellation]
+    by_location: list[LocationMetric]
+    period_start: str
+    period_end: str
+
+
 class StatsReport(RinsedModel):
     """All KPIs bundled into a single result."""
 

@@ -10,6 +10,8 @@ from rinsed_snowflake_client._query_builder import (
     active_members_at_start_sql,
     churn_count_sql,
     conversion_rate_sql,
+    daily_cancellations_by_location_sql,
+    daily_cancellations_sql,
     member_car_count_sql,
     membership_revenue_sql,
     new_membership_sales_sql,
@@ -22,6 +24,9 @@ from rinsed_snowflake_client.types._stats import (
     CarCountResult,
     ChurnResult,
     ConversionResult,
+    DailyCancellation,
+    DailyCancellationResult,
+    DailyChurnResult,
     LocationMetric,
     MembershipRevenueResult,
     MembershipSalesResult,
@@ -250,6 +255,118 @@ class StatsResource:
     ) -> ChurnResult:
         """Voluntary churn rate (member-initiated cancellations)."""
         return self._churn_rate("terminated", start, end, locations)
+
+    # ------------------------------------------------------------------
+    # Daily cancellations & churn
+    # ------------------------------------------------------------------
+
+    def _build_daily_cancellations(
+        self, start: DateInput, end: DateInput, locations: Locations
+    ) -> tuple[list[DailyCancellation], list[LocationMetric], int, int, int]:
+        """Internal: query and pivot daily cancellation data."""
+        sql, params = daily_cancellations_sql(start, end, locations)
+        df = self._client._execute(sql, params)
+
+        loc_sql, loc_params = daily_cancellations_by_location_sql(start, end, locations)
+        loc_df = self._client._execute(loc_sql, loc_params)
+
+        # Pivot by date
+        day_map: dict[str, dict[str, int]] = {}
+        for _, r in df.iterrows():
+            date_str = str(r["churn_date"])
+            if date_str not in day_map:
+                day_map[date_str] = {"voluntary": 0, "involuntary": 0}
+            if r["churn_type"] == "terminated":
+                day_map[date_str]["voluntary"] = int(r["cnt"])
+            elif r["churn_type"] == "expired":
+                day_map[date_str]["involuntary"] = int(r["cnt"])
+
+        days = []
+        total_vol = 0
+        total_inv = 0
+        for date_str in sorted(day_map):
+            v = day_map[date_str]["voluntary"]
+            i = day_map[date_str]["involuntary"]
+            total_vol += v
+            total_inv += i
+            days.append(DailyCancellation(
+                date=date_str, voluntary=v, involuntary=i, total=v + i,
+            ))
+
+        by_loc = [
+            LocationMetric(location_name=r["location_name"], value=int(r["cnt"]))
+            for _, r in loc_df.iterrows()
+        ]
+
+        return days, by_loc, total_vol, total_inv, total_vol + total_inv
+
+    def cancellations(
+        self,
+        start: DateInput,
+        end: DateInput,
+        locations: Locations = None,
+    ) -> DailyCancellationResult:
+        """Daily cancellation counts (voluntary + involuntary).
+
+        Uses Rinsed's real-time churn_date — the day the cancellation
+        or expiry was recorded, not WashU's shifted billing-cycle definition.
+        """
+        days, by_loc, total_vol, total_inv, total = self._build_daily_cancellations(
+            start, end, locations
+        )
+        return DailyCancellationResult(
+            total=total,
+            total_voluntary=total_vol,
+            total_involuntary=total_inv,
+            days=days,
+            by_location=by_loc,
+            period_start=str(start),
+            period_end=str(end),
+        )
+
+    def daily_churn(
+        self,
+        start: DateInput,
+        end: DateInput,
+        locations: Locations = None,
+    ) -> DailyChurnResult:
+        """Daily churn counts with rate context.
+
+        Same daily data as cancellations(), plus the active member
+        denominator for computing an overall churn rate for the period.
+        Uses Rinsed's real-time churn_date for the daily breakdown.
+        """
+        days, by_loc, total_vol, total_inv, total_churned = self._build_daily_cancellations(
+            start, end, locations
+        )
+
+        # Get active member denominator (previous month)
+        am_sql, am_params = active_members_at_start_sql(start, locations)
+        am_df = self._client._execute(am_sql, am_params)
+        total_active = int(am_df["total_members"].sum()) if not am_df.empty else 0
+        rate = total_churned / total_active if total_active > 0 else 0.0
+
+        # Per-location churn rates
+        am_map = {r["location_name"]: int(r["total_members"]) for _, r in am_df.iterrows()}
+        loc_rates = []
+        for loc_metric in by_loc:
+            active = am_map.get(loc_metric.location_name, 0)
+            loc_rate = loc_metric.value / active if active > 0 else 0.0
+            loc_rates.append(LocationMetric(
+                location_name=loc_metric.location_name, value=round(loc_rate, 4),
+            ))
+
+        return DailyChurnResult(
+            total_churned=total_churned,
+            total_voluntary=total_vol,
+            total_involuntary=total_inv,
+            starting_count=total_active,
+            rate=round(rate, 4),
+            days=days,
+            by_location=loc_rates,
+            period_start=str(start),
+            period_end=str(end),
+        )
 
     # ------------------------------------------------------------------
     # Bundled report

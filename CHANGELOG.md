@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0 — 2026-03-24
+
+### Added
+- `client.stats.cancellations(start, end, locations?)` — daily cancellation counts (voluntary + involuntary) using Rinsed's real-time churn_date
+- `client.stats.daily_churn(start, end, locations?)` — daily churn counts with active member denominator and rate context
+- New types: `DailyCancellation`, `DailyCancellationResult`, `DailyChurnResult`
+
 ## 0.2.0 — 2026-03-24
 
 ### Added

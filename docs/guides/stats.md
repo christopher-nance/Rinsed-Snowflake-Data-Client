@@ -319,6 +319,108 @@ with RinsedClient() as client:
 
 ---
 
+## Daily Cancellations
+
+Get daily cancellation counts (both voluntary and involuntary) using Rinsed's real-time `churn_date` — the day the cancellation or expiry was recorded.
+
+```python
+result = client.stats.cancellations("2026-03-01", "2026-03-18")
+print(f"Total: {result.total:,}")
+print(f"Voluntary: {result.total_voluntary:,}")
+print(f"Involuntary: {result.total_involuntary:,}")
+```
+
+### Daily Breakdown
+
+Each day includes voluntary, involuntary, and total counts:
+
+```python
+result = client.stats.cancellations("2026-03-01", "2026-03-18")
+
+for day in result.days:
+    print(f"{day.date}: {day.voluntary:>4} vol, {day.involuntary:>4} invol, {day.total:>4} total")
+# 2026-03-01:  166 vol,   26 invol,  192 total
+# 2026-03-02:  166 vol,   23 invol,  189 total
+# ...
+```
+
+### Per-Location Totals
+
+The `by_location` field shows total cancellations (both types) per location for the period:
+
+```python
+ranked = sorted(result.by_location, key=lambda x: x.value, reverse=True)
+for loc in ranked:
+    print(f"{loc.location_name}: {loc.value:,.0f} cancellations")
+```
+
+!!! info "Cancellations vs. monthly churn methods"
+    `cancellations()` uses **Rinsed's real-time dates** — the day the event was recorded. The monthly `voluntary_churn_rate()` and `involuntary_churn_rate()` methods use **WashU's shifted billing-cycle definition**. These are complementary views of the same underlying data.
+
+### Use Case — Weekly Cancellation Summary
+
+```python
+from datetime import datetime, timedelta
+
+with RinsedClient() as client:
+    result = client.stats.cancellations("2026-03-01", "2026-03-14")
+
+    # Group by week
+    for day in result.days:
+        dt = datetime.fromisoformat(day.date)
+        week = dt.isocalendar()[1]
+        print(f"Week {week}: {day.date} — {day.total} cancellations")
+```
+
+### Use Case — Cancellations for a Single Location
+
+```python
+result = client.stats.cancellations(
+    "2026-03-01", "2026-03-18",
+    locations="Naperville",
+)
+print(f"Naperville cancellations: {result.total}")
+for day in result.days:
+    print(f"  {day.date}: {day.total}")
+```
+
+---
+
+## Daily Churn
+
+Same daily data as `cancellations()`, plus the active member denominator for computing an overall churn rate. Useful when you want to see both the raw counts and the rate in context.
+
+```python
+result = client.stats.daily_churn("2026-03-01", "2026-03-18")
+print(f"Churned: {result.total_churned:,}")
+print(f"Starting members: {result.starting_count:,}")
+print(f"Churn rate: {result.rate:.2%}")
+```
+
+### Per-Location Churn Rates
+
+The `by_location` field shows churn **rates** (not counts) per location:
+
+```python
+ranked = sorted(result.by_location, key=lambda x: x.value, reverse=True)
+for loc in ranked[:5]:
+    print(f"{loc.location_name}: {loc.value:.2%}")
+```
+
+### Daily Breakdown
+
+The `days` field is identical to `cancellations()` — daily voluntary/involuntary/total counts:
+
+```python
+for day in result.days:
+    print(f"{day.date}: {day.total} churned")
+```
+
+!!! note
+    The `rate` and `by_location` rates use the **previous month's** active member count as the denominator (from `ACTIVE_MEMBERS_MONTHLY`). The `days` breakdown uses Rinsed's real-time `churn_date`.
+
+---
+
 ## Edge Cases & Known Nuances
 
 ### Combo Transactions (NM&R / RM&R)

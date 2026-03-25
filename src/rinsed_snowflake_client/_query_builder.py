@@ -313,3 +313,42 @@ def active_members_at_start_sql(
 
     sql += " GROUP BY mh.location_name ORDER BY mh.location_name"
     return (sql, params)
+
+
+# ---------------------------------------------------------------------------
+# Daily cancellation queries
+# ---------------------------------------------------------------------------
+
+
+def daily_cancellations_sql(
+    start: DateInput | None, end: DateInput | None, locations: Locations
+) -> tuple[str, list]:
+    """Daily cancellation/churn counts by churn_date and churn_type.
+
+    Uses Rinsed's real-time churn_date (NOT WashU's shifted definition).
+    churn_date is a DATE column, so no cast needed.
+    """
+    sql = """
+        SELECT churn_date, churn_type, COUNT(DISTINCT rinsed_membership_id) as cnt
+        FROM member_history
+        WHERE churn_type IS NOT NULL
+    """.strip()
+    params: list = []
+    sql = _apply_filters(sql, params, "churn_date", start, end, locations)
+    sql += " GROUP BY churn_date, churn_type ORDER BY churn_date, churn_type"
+    return (sql, params)
+
+
+def daily_cancellations_by_location_sql(
+    start: DateInput | None, end: DateInput | None, locations: Locations
+) -> tuple[str, list]:
+    """Total cancellations per location for the period."""
+    sql = """
+        SELECT location_name, COUNT(DISTINCT rinsed_membership_id) as cnt
+        FROM member_history
+        WHERE churn_type IS NOT NULL
+    """.strip()
+    params: list = []
+    sql = _apply_filters(sql, params, "churn_date", start, end, locations)
+    sql += " GROUP BY location_name ORDER BY location_name"
+    return (sql, params)
