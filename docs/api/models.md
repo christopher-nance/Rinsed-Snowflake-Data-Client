@@ -41,3 +41,11 @@ All methods return typed Pydantic models.
 ## StatsReport
 
 ::: rinsed_snowflake_client.StatsReport
+
+## DailyKPIRow
+
+::: rinsed_snowflake_client.DailyKPIRow
+
+## DailyKPIResult
+
+::: rinsed_snowflake_client.DailyKPIResult

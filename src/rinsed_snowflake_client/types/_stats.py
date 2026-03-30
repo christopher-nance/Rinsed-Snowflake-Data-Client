@@ -135,3 +135,32 @@ class StatsReport(RinsedModel):
     conversion: ConversionResult
     period_start: str
     period_end: str
+
+
+class DailyKPIRow(RinsedModel):
+    """All KPI components for a single location on a single day."""
+
+    date: str
+    location_name: str
+    total_car_count: int = 0
+    retail_car_count: int = 0
+    member_car_count: int = 0
+    retail_revenue: float = 0.0
+    retail_transaction_count: int = 0
+    membership_revenue: float = 0.0
+    membership_revenue_new: float = 0.0
+    membership_revenue_renewal: float = 0.0
+    membership_sales: int = 0
+    membership_sales_revenue: float = 0.0
+    eligible_washes: int = 0
+    conversion_sales: int = 0
+
+
+class DailyKPIResult(RinsedModel):
+    """Batch daily KPI result across all locations and dates."""
+
+    rows: list[DailyKPIRow]
+    period_start: str
+    period_end: str
+    location_count: int
+    day_count: int

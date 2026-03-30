@@ -320,6 +320,100 @@ def active_members_at_start_sql(
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# Batch daily KPI queries
+# ---------------------------------------------------------------------------
+
+
+def batch_conversion_daily_sql(
+    start: DateInput | None, end: DateInput | None, locations: Locations
+) -> tuple[str, list]:
+    """Daily car count + conversion components from CONVERSION_DAILY."""
+    sql = """
+        SELECT
+            created_date AS kpi_date,
+            location_name,
+            SUM(total_washes) AS total_car_count,
+            SUM(sales) AS conversion_sales,
+            SUM(eligible_washes) AS eligible_washes
+        FROM conversion_daily
+        WHERE 1=1
+    """.strip()
+    params: list = []
+    sql = _apply_filters(sql, params, "created_date", start, end, locations)
+    sql += " GROUP BY created_date, location_name ORDER BY created_date, location_name"
+    return (sql, params)
+
+
+def batch_fct_revenue_sql(
+    start: DateInput | None, end: DateInput | None, locations: Locations
+) -> tuple[str, list]:
+    """Daily retail car count + revenue from FCT_REVENUE."""
+    sql = """
+        SELECT
+            DATE(created_at) AS kpi_date,
+            location_name,
+            COUNT(*) AS retail_car_count,
+            SUM(amount) AS retail_revenue,
+            COUNT(*) AS retail_transaction_count
+        FROM fct_revenue
+        WHERE transaction_category = 'Retail Wash'
+    """.strip()
+    params: list = []
+    sql = _apply_filters(sql, params, "created_at", start, end, locations, cast_date=True)
+    sql += " GROUP BY DATE(created_at), location_name ORDER BY kpi_date, location_name"
+    return (sql, params)
+
+
+def batch_fct_washes_sql(
+    start: DateInput | None, end: DateInput | None, locations: Locations
+) -> tuple[str, list]:
+    """Daily member car count from FCT_WASHES."""
+    sql = """
+        SELECT
+            DATE(created_at) AS kpi_date,
+            location_name,
+            COUNT(*) AS member_car_count
+        FROM fct_washes
+        WHERE transaction_category = 'redemption'
+    """.strip()
+    params: list = []
+    sql = _apply_filters(sql, params, "created_at", start, end, locations, cast_date=True)
+    sql += " GROUP BY DATE(created_at), location_name ORDER BY kpi_date, location_name"
+    return (sql, params)
+
+
+def batch_fct_memberships_sql(
+    start: DateInput | None, end: DateInput | None, locations: Locations
+) -> tuple[str, list]:
+    """Daily membership revenue + sales from FCT_MEMBERSHIPS."""
+    sql = """
+        SELECT
+            DATE(created_at) AS kpi_date,
+            location_name,
+            SUM(CASE WHEN transaction_category IN ('new membership', 'rejoin membership')
+                THEN revenue ELSE 0 END) AS membership_revenue_new,
+            SUM(CASE WHEN transaction_category = 'renewed membership'
+                THEN revenue ELSE 0 END) AS membership_revenue_renewal,
+            SUM(revenue) AS membership_revenue,
+            COUNT(CASE WHEN transaction_category IN ('new membership', 'rejoin membership')
+                THEN 1 END) AS membership_sales,
+            SUM(CASE WHEN transaction_category IN ('new membership', 'rejoin membership')
+                THEN revenue ELSE 0 END) AS membership_sales_revenue
+        FROM fct_memberships
+        WHERE transaction_category IN ('new membership', 'rejoin membership', 'renewed membership')
+    """.strip()
+    params: list = []
+    sql = _apply_filters(sql, params, "created_at", start, end, locations, cast_date=True)
+    sql += " GROUP BY DATE(created_at), location_name ORDER BY kpi_date, location_name"
+    return (sql, params)
+
+
+# ---------------------------------------------------------------------------
+# Daily cancellation queries
+# ---------------------------------------------------------------------------
+
+
 def daily_cancellations_sql(
     start: DateInput | None, end: DateInput | None, locations: Locations
 ) -> tuple[str, list]:

@@ -319,6 +319,111 @@ with RinsedClient() as client:
 
 ---
 
+## Batch Daily KPIs
+
+Fetch all non-churn KPIs at daily × location granularity in just **4 Snowflake queries** — regardless of date range or number of locations. Ideal for bulk data pipelines, backfills, and dashboard sync.
+
+```python
+result = client.stats.daily_kpis("2026-03-01", "2026-03-07")
+print(f"{result.day_count} days × {result.location_count} locations = {len(result.rows)} rows")
+# 7 days × 15 locations = 105 rows
+```
+
+Each row is a `DailyKPIRow` containing raw component values for one location on one day:
+
+```python
+for row in result.rows[:3]:
+    print(f"{row.date} {row.location_name}: "
+          f"cars={row.total_car_count} "
+          f"retail=${row.retail_revenue:,.2f} "
+          f"membership=${row.membership_revenue:,.2f}")
+# 2026-03-01 Berwyn: cars=658 retail=$1,102.00 membership=$5,740.20
+# 2026-03-01 Burbank: cars=1,296 retail=$2,348.00 membership=$7,014.30
+# ...
+```
+
+### Available Fields
+
+| Field | Type | Source Table |
+|-------|------|-------------|
+| `total_car_count` | int | CONVERSION_DAILY |
+| `retail_car_count` | int | FCT_REVENUE |
+| `member_car_count` | int | FCT_WASHES |
+| `retail_revenue` | float | FCT_REVENUE |
+| `retail_transaction_count` | int | FCT_REVENUE |
+| `membership_revenue` | float | FCT_MEMBERSHIPS |
+| `membership_revenue_new` | float | FCT_MEMBERSHIPS |
+| `membership_revenue_renewal` | float | FCT_MEMBERSHIPS |
+| `membership_sales` | int | FCT_MEMBERSHIPS |
+| `membership_sales_revenue` | float | FCT_MEMBERSHIPS |
+| `eligible_washes` | int | CONVERSION_DAILY |
+| `conversion_sales` | int | CONVERSION_DAILY |
+
+### Derived Metrics
+
+AWP and conversion rate are left to the consumer to avoid division-by-zero in the data layer:
+
+```python
+for row in result.rows:
+    awp = row.retail_revenue / row.retail_car_count if row.retail_car_count else 0
+    conv = row.conversion_sales / row.eligible_washes if row.eligible_washes else 0
+    print(f"{row.date} {row.location_name}: AWP=${awp:.2f} Conv={conv:.1%}")
+```
+
+### Performance
+
+| Range | Rows | Time |
+|-------|------|------|
+| 1 day | ~15 | ~2s |
+| 1 week | ~105 | ~1.5s |
+| 1 month | ~420 | ~1.5s |
+| 1 year | ~5,400 | ~4s |
+
+!!! tip "vs. report()"
+    `report()` returns KPIs aggregated over the entire period. `daily_kpis()` returns them at daily granularity — one row per location per day. Use `daily_kpis()` when you need to import daily data into a database or build time-series charts.
+
+!!! info "Churn excluded"
+    Churn is a monthly metric based on billing cycles, not a daily one. Use `voluntary_churn_rate()` / `involuntary_churn_rate()` separately for churn data.
+
+### Use Case — Bulk Database Import
+
+```python
+import sqlite3
+
+with RinsedClient() as client:
+    result = client.stats.daily_kpis("2025-01-01", "2026-03-29")
+
+    conn = sqlite3.connect("kpis.db")
+    for row in result.rows:
+        awp = row.retail_revenue / row.retail_car_count if row.retail_car_count else 0
+        conn.execute(
+            "INSERT OR REPLACE INTO kpi_data (date, location, kpi, value) VALUES (?, ?, ?, ?)",
+            (row.date, row.location_name, 'car_count', row.total_car_count),
+        )
+        # ... repeat for other KPIs
+    conn.commit()
+```
+
+### Use Case — Monthly Aggregation from Daily Data
+
+```python
+from collections import defaultdict
+
+result = client.stats.daily_kpis("2026-01-01", "2026-03-29")
+
+monthly = defaultdict(lambda: defaultdict(float))
+for row in result.rows:
+    month = row.date[:7]  # "2026-01"
+    monthly[month]['membership_rev'] += row.membership_revenue
+    monthly[month]['retail_rev'] += row.retail_revenue
+
+for month in sorted(monthly):
+    m = monthly[month]
+    print(f"{month}: membership=${m['membership_rev']:,.2f} retail=${m['retail_rev']:,.2f}")
+```
+
+---
+
 ## Daily Cancellations
 
 Get daily cancellation counts (both voluntary and involuntary) using Rinsed's real-time `churn_date` — the day the cancellation or expiry was recorded.

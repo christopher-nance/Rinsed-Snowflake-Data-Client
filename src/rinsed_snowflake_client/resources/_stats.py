@@ -8,6 +8,10 @@ from typing import TYPE_CHECKING
 from rinsed_snowflake_client._filters import DateInput, Locations
 from rinsed_snowflake_client._query_builder import (
     active_members_at_start_sql,
+    batch_conversion_daily_sql,
+    batch_fct_memberships_sql,
+    batch_fct_revenue_sql,
+    batch_fct_washes_sql,
     churn_count_sql,
     conversion_rate_sql,
     daily_cancellations_by_location_sql,
@@ -27,6 +31,8 @@ from rinsed_snowflake_client.types._stats import (
     DailyCancellation,
     DailyCancellationResult,
     DailyChurnResult,
+    DailyKPIResult,
+    DailyKPIRow,
     LocationMetric,
     MembershipRevenueResult,
     MembershipSalesResult,
@@ -399,4 +405,96 @@ class StatsResource:
             conversion=conv,
             period_start=str(start),
             period_end=str(end),
+        )
+
+    # ------------------------------------------------------------------
+    # Batch daily KPIs
+    # ------------------------------------------------------------------
+
+    def daily_kpis(
+        self,
+        start: DateInput,
+        end: DateInput,
+        locations: Locations = None,
+    ) -> DailyKPIResult:
+        """All non-churn KPIs at daily × location granularity in 4 queries.
+
+        Returns one :class:`DailyKPIRow` per location per day with raw
+        component values.  Derived metrics (AWP, conversion rate) are
+        intentionally left to the consumer to compute from the components.
+
+        Churn is a monthly metric and is **not** included — use
+        :meth:`voluntary_churn_rate` / :meth:`involuntary_churn_rate`
+        separately when needed.
+        """
+        from collections import defaultdict
+
+        grid: dict[tuple[str, str], dict] = defaultdict(
+            lambda: {
+                "total_car_count": 0,
+                "retail_car_count": 0,
+                "member_car_count": 0,
+                "retail_revenue": 0.0,
+                "retail_transaction_count": 0,
+                "membership_revenue": 0.0,
+                "membership_revenue_new": 0.0,
+                "membership_revenue_renewal": 0.0,
+                "membership_sales": 0,
+                "membership_sales_revenue": 0.0,
+                "eligible_washes": 0,
+                "conversion_sales": 0,
+            }
+        )
+
+        # 1. CONVERSION_DAILY — car count + conversion components
+        sql, params = batch_conversion_daily_sql(start, end, locations)
+        df = self._client._execute(sql, params)
+        for _, r in df.iterrows():
+            key = (str(r["kpi_date"]), r["location_name"])
+            grid[key]["total_car_count"] = int(r["total_car_count"])
+            grid[key]["conversion_sales"] = int(r["conversion_sales"])
+            grid[key]["eligible_washes"] = int(r["eligible_washes"])
+
+        # 2. FCT_REVENUE — retail car count + revenue
+        sql, params = batch_fct_revenue_sql(start, end, locations)
+        df = self._client._execute(sql, params)
+        for _, r in df.iterrows():
+            key = (str(r["kpi_date"]), r["location_name"])
+            grid[key]["retail_car_count"] = int(r["retail_car_count"])
+            grid[key]["retail_revenue"] = float(r["retail_revenue"])
+            grid[key]["retail_transaction_count"] = int(r["retail_transaction_count"])
+
+        # 3. FCT_WASHES — member car count
+        sql, params = batch_fct_washes_sql(start, end, locations)
+        df = self._client._execute(sql, params)
+        for _, r in df.iterrows():
+            key = (str(r["kpi_date"]), r["location_name"])
+            grid[key]["member_car_count"] = int(r["member_car_count"])
+
+        # 4. FCT_MEMBERSHIPS — membership revenue + sales
+        sql, params = batch_fct_memberships_sql(start, end, locations)
+        df = self._client._execute(sql, params)
+        for _, r in df.iterrows():
+            key = (str(r["kpi_date"]), r["location_name"])
+            grid[key]["membership_revenue"] = float(r["membership_revenue"])
+            grid[key]["membership_revenue_new"] = float(r["membership_revenue_new"])
+            grid[key]["membership_revenue_renewal"] = float(r["membership_revenue_renewal"])
+            grid[key]["membership_sales"] = int(r["membership_sales"])
+            grid[key]["membership_sales_revenue"] = float(r["membership_sales_revenue"])
+
+        # Build sorted row list
+        rows = [
+            DailyKPIRow(date=k[0], location_name=k[1], **v)
+            for k, v in sorted(grid.items())
+        ]
+
+        locations_seen = {r.location_name for r in rows}
+        dates_seen = {r.date for r in rows}
+
+        return DailyKPIResult(
+            rows=rows,
+            period_start=str(start),
+            period_end=str(end),
+            location_count=len(locations_seen),
+            day_count=len(dates_seen),
         )

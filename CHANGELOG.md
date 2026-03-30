@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.0 — 2026-03-30
+
+### Added
+- `client.stats.daily_kpis(start, end, locations?)` — batch method returning all non-churn KPIs at daily × location granularity in just 4 Snowflake queries (vs. 7+ per location per day previously)
+- New types: `DailyKPIRow` (single location-day with all KPI components), `DailyKPIResult` (batch result with metadata)
+- Each `DailyKPIRow` includes raw components: `total_car_count`, `retail_car_count`, `member_car_count`, `retail_revenue`, `retail_transaction_count`, `membership_revenue`, `membership_revenue_new`, `membership_revenue_renewal`, `membership_sales`, `membership_sales_revenue`, `eligible_washes`, `conversion_sales`
+- Derived metrics (AWP, conversion rate) left to consumer — avoids division-by-zero in the data layer
+
+### Notes
+- Churn is a monthly metric and is excluded from `daily_kpis()`. Use `voluntary_churn_rate()` / `involuntary_churn_rate()` separately.
+
 ## 0.3.1 — 2026-03-25
 
 ### Changed
