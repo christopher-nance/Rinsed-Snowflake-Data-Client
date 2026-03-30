@@ -817,6 +817,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#rinsed_snowflake_client.resources.StatsResource.daily_kpis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        daily_kpis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#rinsed_snowflake_client.resources.StatsResource.involuntary_churn_rate" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1223,6 +1234,17 @@
     <span class="md-ellipsis">
       
         daily_churn
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rinsed_snowflake_client.resources.StatsResource.daily_kpis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        daily_kpis
       
     </span>
   </a>
@@ -1922,6 +1944,30 @@ or expiry was recorded, not WashU's shifted billing-cycle definition.</p>
 <p>Same daily data as cancellations(), plus the active member
 denominator for computing an overall churn rate for the period.
 Uses Rinsed's real-time churn_date for the daily breakdown.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="rinsed_snowflake_client.resources.StatsResource.daily_kpis" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">daily_kpis</span><span class="p">(</span><span class="n">start</span><span class="p">:</span> <span class="n">DateInput</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">DateInput</span><span class="p">,</span> <span class="n">locations</span><span class="p">:</span> <span class="n">Locations</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DailyKPIResult</span></code>
+
+<a href="#rinsed_snowflake_client.resources.StatsResource.daily_kpis" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>All non-churn KPIs at daily × location granularity in 4 queries.</p>
+<p>Returns one :class:<code>DailyKPIRow</code> per location per day with raw
+component values.  Derived metrics (AWP, conversion rate) are
+intentionally left to the consumer to compute from the components.</p>
+<p>Churn is a monthly metric and is <strong>not</strong> included — use
+:meth:<code>voluntary_churn_rate</code> / :meth:<code>involuntary_churn_rate</code>
+separately when needed.</p>
 
 
     </div>

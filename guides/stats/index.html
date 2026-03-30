@@ -705,6 +705,78 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#batch-daily-kpis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batch Daily KPIs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Batch Daily KPIs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#available-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available Fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#derived-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Derived Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-case-bulk-database-import" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Case — Bulk Database Import
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-case-monthly-aggregation-from-daily-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Case — Monthly Aggregation from Daily Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#daily-cancellations" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1409,6 +1481,78 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#batch-daily-kpis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batch Daily KPIs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Batch Daily KPIs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#available-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available Fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#derived-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Derived Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-case-bulk-database-import" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Case — Bulk Database Import
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-case-monthly-aggregation-from-daily-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Case — Monthly Aggregation from Daily Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#daily-cancellations" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1824,72 +1968,239 @@
 <a id="__codelineno-22-20" name="__codelineno-22-20" href="#__codelineno-22-20"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">loc</span><span class="si">:</span><span class="s2">&lt;16</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cars</span><span class="si">:</span><span class="s2">&gt;8,.0f</span><span class="si">}</span><span class="s2"> $</span><span class="si">{</span><span class="n">rev</span><span class="si">:</span><span class="s2">&gt;10,.2f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">conv</span><span class="si">:</span><span class="s2">&gt;7.1%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
 <hr />
+<h2 id="batch-daily-kpis">Batch Daily KPIs<a class="headerlink" href="#batch-daily-kpis" title="Permanent link">&para;</a></h2>
+<p>Fetch all non-churn KPIs at daily × location granularity in just <strong>4 Snowflake queries</strong> — regardless of date range or number of locations. Ideal for bulk data pipelines, backfills, and dashboard sync.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">daily_kpis</span><span class="p">(</span><span class="s2">&quot;2026-03-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2026-03-07&quot;</span><span class="p">)</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">day_count</span><span class="si">}</span><span class="s2"> days × </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">location_count</span><span class="si">}</span><span class="s2"> locations = </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">rows</span><span class="p">)</span><span class="si">}</span><span class="s2"> rows&quot;</span><span class="p">)</span>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="c1"># 7 days × 15 locations = 105 rows</span>
+</code></pre></div>
+<p>Each row is a <code>DailyKPIRow</code> containing raw component values for one location on one day:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">rows</span><span class="p">[:</span><span class="mi">3</span><span class="p">]:</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">date</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">location_name</span><span class="si">}</span><span class="s2">: &quot;</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>          <span class="sa">f</span><span class="s2">&quot;cars=</span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">total_car_count</span><span class="si">}</span><span class="s2"> &quot;</span>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>          <span class="sa">f</span><span class="s2">&quot;retail=$</span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">retail_revenue</span><span class="si">:</span><span class="s2">,.2f</span><span class="si">}</span><span class="s2"> &quot;</span>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a>          <span class="sa">f</span><span class="s2">&quot;membership=$</span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">membership_revenue</span><span class="si">:</span><span class="s2">,.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="c1"># 2026-03-01 Berwyn: cars=658 retail=$1,102.00 membership=$5,740.20</span>
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a><span class="c1"># 2026-03-01 Burbank: cars=1,296 retail=$2,348.00 membership=$7,014.30</span>
+<a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a><span class="c1"># ...</span>
+</code></pre></div>
+<h3 id="available-fields">Available Fields<a class="headerlink" href="#available-fields" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Source Table</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>total_car_count</code></td>
+<td>int</td>
+<td>CONVERSION_DAILY</td>
+</tr>
+<tr>
+<td><code>retail_car_count</code></td>
+<td>int</td>
+<td>FCT_REVENUE</td>
+</tr>
+<tr>
+<td><code>member_car_count</code></td>
+<td>int</td>
+<td>FCT_WASHES</td>
+</tr>
+<tr>
+<td><code>retail_revenue</code></td>
+<td>float</td>
+<td>FCT_REVENUE</td>
+</tr>
+<tr>
+<td><code>retail_transaction_count</code></td>
+<td>int</td>
+<td>FCT_REVENUE</td>
+</tr>
+<tr>
+<td><code>membership_revenue</code></td>
+<td>float</td>
+<td>FCT_MEMBERSHIPS</td>
+</tr>
+<tr>
+<td><code>membership_revenue_new</code></td>
+<td>float</td>
+<td>FCT_MEMBERSHIPS</td>
+</tr>
+<tr>
+<td><code>membership_revenue_renewal</code></td>
+<td>float</td>
+<td>FCT_MEMBERSHIPS</td>
+</tr>
+<tr>
+<td><code>membership_sales</code></td>
+<td>int</td>
+<td>FCT_MEMBERSHIPS</td>
+</tr>
+<tr>
+<td><code>membership_sales_revenue</code></td>
+<td>float</td>
+<td>FCT_MEMBERSHIPS</td>
+</tr>
+<tr>
+<td><code>eligible_washes</code></td>
+<td>int</td>
+<td>CONVERSION_DAILY</td>
+</tr>
+<tr>
+<td><code>conversion_sales</code></td>
+<td>int</td>
+<td>CONVERSION_DAILY</td>
+</tr>
+</tbody>
+</table>
+<h3 id="derived-metrics">Derived Metrics<a class="headerlink" href="#derived-metrics" title="Permanent link">&para;</a></h3>
+<p>AWP and conversion rate are left to the consumer to avoid division-by-zero in the data layer:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">rows</span><span class="p">:</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>    <span class="n">awp</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">retail_revenue</span> <span class="o">/</span> <span class="n">row</span><span class="o">.</span><span class="n">retail_car_count</span> <span class="k">if</span> <span class="n">row</span><span class="o">.</span><span class="n">retail_car_count</span> <span class="k">else</span> <span class="mi">0</span>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>    <span class="n">conv</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">conversion_sales</span> <span class="o">/</span> <span class="n">row</span><span class="o">.</span><span class="n">eligible_washes</span> <span class="k">if</span> <span class="n">row</span><span class="o">.</span><span class="n">eligible_washes</span> <span class="k">else</span> <span class="mi">0</span>
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">date</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">location_name</span><span class="si">}</span><span class="s2">: AWP=$</span><span class="si">{</span><span class="n">awp</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> Conv=</span><span class="si">{</span><span class="n">conv</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="performance">Performance<a class="headerlink" href="#performance" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Range</th>
+<th>Rows</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 day</td>
+<td>~15</td>
+<td>~2s</td>
+</tr>
+<tr>
+<td>1 week</td>
+<td>~105</td>
+<td>~1.5s</td>
+</tr>
+<tr>
+<td>1 month</td>
+<td>~420</td>
+<td>~1.5s</td>
+</tr>
+<tr>
+<td>1 year</td>
+<td>~5,400</td>
+<td>~4s</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">vs. report()</p>
+<p><code>report()</code> returns KPIs aggregated over the entire period. <code>daily_kpis()</code> returns them at daily granularity — one row per location per day. Use <code>daily_kpis()</code> when you need to import daily data into a database or build time-series charts.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Churn excluded</p>
+<p>Churn is a monthly metric based on billing cycles, not a daily one. Use <code>voluntary_churn_rate()</code> / <code>involuntary_churn_rate()</code> separately for churn data.</p>
+</div>
+<h3 id="use-case-bulk-database-import">Use Case — Bulk Database Import<a class="headerlink" href="#use-case-bulk-database-import" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="kn">import</span> <span class="nn">sqlite3</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="k">with</span> <span class="n">RinsedClient</span><span class="p">()</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">daily_kpis</span><span class="p">(</span><span class="s2">&quot;2025-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2026-03-29&quot;</span><span class="p">)</span>
+<a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a>
+<a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a>    <span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;kpis.db&quot;</span><span class="p">)</span>
+<a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a>    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">rows</span><span class="p">:</span>
+<a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a>        <span class="n">awp</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">retail_revenue</span> <span class="o">/</span> <span class="n">row</span><span class="o">.</span><span class="n">retail_car_count</span> <span class="k">if</span> <span class="n">row</span><span class="o">.</span><span class="n">retail_car_count</span> <span class="k">else</span> <span class="mi">0</span>
+<a id="__codelineno-26-9" name="__codelineno-26-9" href="#__codelineno-26-9"></a>        <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<a id="__codelineno-26-10" name="__codelineno-26-10" href="#__codelineno-26-10"></a>            <span class="s2">&quot;INSERT OR REPLACE INTO kpi_data (date, location, kpi, value) VALUES (?, ?, ?, ?)&quot;</span><span class="p">,</span>
+<a id="__codelineno-26-11" name="__codelineno-26-11" href="#__codelineno-26-11"></a>            <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">location_name</span><span class="p">,</span> <span class="s1">&#39;car_count&#39;</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">total_car_count</span><span class="p">),</span>
+<a id="__codelineno-26-12" name="__codelineno-26-12" href="#__codelineno-26-12"></a>        <span class="p">)</span>
+<a id="__codelineno-26-13" name="__codelineno-26-13" href="#__codelineno-26-13"></a>        <span class="c1"># ... repeat for other KPIs</span>
+<a id="__codelineno-26-14" name="__codelineno-26-14" href="#__codelineno-26-14"></a>    <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</code></pre></div>
+<h3 id="use-case-monthly-aggregation-from-daily-data">Use Case — Monthly Aggregation from Daily Data<a class="headerlink" href="#use-case-monthly-aggregation-from-daily-data" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">daily_kpis</span><span class="p">(</span><span class="s2">&quot;2026-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2026-03-29&quot;</span><span class="p">)</span>
+<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a>
+<a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a><span class="n">monthly</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">))</span>
+<a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">rows</span><span class="p">:</span>
+<a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a>    <span class="n">month</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">date</span><span class="p">[:</span><span class="mi">7</span><span class="p">]</span>  <span class="c1"># &quot;2026-01&quot;</span>
+<a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a>    <span class="n">monthly</span><span class="p">[</span><span class="n">month</span><span class="p">][</span><span class="s1">&#39;membership_rev&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">row</span><span class="o">.</span><span class="n">membership_revenue</span>
+<a id="__codelineno-27-9" name="__codelineno-27-9" href="#__codelineno-27-9"></a>    <span class="n">monthly</span><span class="p">[</span><span class="n">month</span><span class="p">][</span><span class="s1">&#39;retail_rev&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">row</span><span class="o">.</span><span class="n">retail_revenue</span>
+<a id="__codelineno-27-10" name="__codelineno-27-10" href="#__codelineno-27-10"></a>
+<a id="__codelineno-27-11" name="__codelineno-27-11" href="#__codelineno-27-11"></a><span class="k">for</span> <span class="n">month</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">monthly</span><span class="p">):</span>
+<a id="__codelineno-27-12" name="__codelineno-27-12" href="#__codelineno-27-12"></a>    <span class="n">m</span> <span class="o">=</span> <span class="n">monthly</span><span class="p">[</span><span class="n">month</span><span class="p">]</span>
+<a id="__codelineno-27-13" name="__codelineno-27-13" href="#__codelineno-27-13"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">month</span><span class="si">}</span><span class="s2">: membership=$</span><span class="si">{</span><span class="n">m</span><span class="p">[</span><span class="s1">&#39;membership_rev&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">,.2f</span><span class="si">}</span><span class="s2"> retail=$</span><span class="si">{</span><span class="n">m</span><span class="p">[</span><span class="s1">&#39;retail_rev&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">,.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
 <h2 id="daily-cancellations">Daily Cancellations<a class="headerlink" href="#daily-cancellations" title="Permanent link">&para;</a></h2>
 <p>Get daily cancellation counts (both voluntary and involuntary) using Rinsed's real-time <code>churn_date</code> — the day the cancellation or expiry was recorded.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">cancellations</span><span class="p">(</span><span class="s2">&quot;2026-03-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2026-03-18&quot;</span><span class="p">)</span>
-<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">total</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Voluntary: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">total_voluntary</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Involuntary: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">total_involuntary</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">cancellations</span><span class="p">(</span><span class="s2">&quot;2026-03-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2026-03-18&quot;</span><span class="p">)</span>
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">total</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Voluntary: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">total_voluntary</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Involuntary: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">total_involuntary</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="daily-breakdown">Daily Breakdown<a class="headerlink" href="#daily-breakdown" title="Permanent link">&para;</a></h3>
 <p>Each day includes voluntary, involuntary, and total counts:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">cancellations</span><span class="p">(</span><span class="s2">&quot;2026-03-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2026-03-18&quot;</span><span class="p">)</span>
-<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>
-<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="k">for</span> <span class="n">day</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">days</span><span class="p">:</span>
-<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">day</span><span class="o">.</span><span class="n">date</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">day</span><span class="o">.</span><span class="n">voluntary</span><span class="si">:</span><span class="s2">&gt;4</span><span class="si">}</span><span class="s2"> vol, </span><span class="si">{</span><span class="n">day</span><span class="o">.</span><span class="n">involuntary</span><span class="si">:</span><span class="s2">&gt;4</span><span class="si">}</span><span class="s2"> invol, </span><span class="si">{</span><span class="n">day</span><span class="o">.</span><span class="n">total</span><span class="si">:</span><span class="s2">&gt;4</span><span class="si">}</span><span class="s2"> total&quot;</span><span class="p">)</span>
-<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="c1"># 2026-03-01:  166 vol,   26 invol,  192 total</span>
-<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="c1"># 2026-03-02:  166 vol,   23 invol,  189 total</span>
-<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a><span class="c1"># ...</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">cancellations</span><span class="p">(</span><span class="s2">&quot;2026-03-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2026-03-18&quot;</span><span class="p">)</span>
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a><span class="k">for</span> <span class="n">day</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">days</span><span class="p">:</span>
+<a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">day</span><span class="o">.</span><span class="n">date</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">day</span><span class="o">.</span><span class="n">voluntary</span><span class="si">:</span><span class="s2">&gt;4</span><span class="si">}</span><span class="s2"> vol, </span><span class="si">{</span><span class="n">day</span><span class="o">.</span><span class="n">involuntary</span><span class="si">:</span><span class="s2">&gt;4</span><span class="si">}</span><span class="s2"> invol, </span><span class="si">{</span><span class="n">day</span><span class="o">.</span><span class="n">total</span><span class="si">:</span><span class="s2">&gt;4</span><span class="si">}</span><span class="s2"> total&quot;</span><span class="p">)</span>
+<a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a><span class="c1"># 2026-03-01:  166 vol,   26 invol,  192 total</span>
+<a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a><span class="c1"># 2026-03-02:  166 vol,   23 invol,  189 total</span>
+<a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a><span class="c1"># ...</span>
 </code></pre></div>
 <h3 id="per-location-totals">Per-Location Totals<a class="headerlink" href="#per-location-totals" title="Permanent link">&para;</a></h3>
 <p>The <code>by_location</code> field shows total cancellations (both types) per location for the period:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="n">ranked</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">by_location</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="k">for</span> <span class="n">loc</span> <span class="ow">in</span> <span class="n">ranked</span><span class="p">:</span>
-<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">loc</span><span class="o">.</span><span class="n">location_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">loc</span><span class="o">.</span><span class="n">value</span><span class="si">:</span><span class="s2">,.0f</span><span class="si">}</span><span class="s2"> cancellations&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="n">ranked</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">by_location</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="k">for</span> <span class="n">loc</span> <span class="ow">in</span> <span class="n">ranked</span><span class="p">:</span>
+<a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">loc</span><span class="o">.</span><span class="n">location_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">loc</span><span class="o">.</span><span class="n">value</span><span class="si">:</span><span class="s2">,.0f</span><span class="si">}</span><span class="s2"> cancellations&quot;</span><span class="p">)</span>
 </code></pre></div>
 <div class="admonition info">
 <p class="admonition-title">Cancellations vs. monthly churn methods</p>
 <p><code>cancellations()</code> uses <strong>Rinsed's real-time dates</strong> — the day the event was recorded. The monthly <code>voluntary_churn_rate()</code> and <code>involuntary_churn_rate()</code> methods use <strong>WashU's shifted billing-cycle definition</strong>. These are complementary views of the same underlying data.</p>
 </div>
 <h3 id="use-case-weekly-cancellation-summary">Use Case — Weekly Cancellation Summary<a class="headerlink" href="#use-case-weekly-cancellation-summary" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
-<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>
-<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="k">with</span> <span class="n">RinsedClient</span><span class="p">()</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
-<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">cancellations</span><span class="p">(</span><span class="s2">&quot;2026-03-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2026-03-14&quot;</span><span class="p">)</span>
-<a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a>
-<a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a>    <span class="c1"># Group by week</span>
-<a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a>    <span class="k">for</span> <span class="n">day</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">days</span><span class="p">:</span>
-<a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a>        <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">day</span><span class="o">.</span><span class="n">date</span><span class="p">)</span>
-<a id="__codelineno-26-9" name="__codelineno-26-9" href="#__codelineno-26-9"></a>        <span class="n">week</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">isocalendar</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
-<a id="__codelineno-26-10" name="__codelineno-26-10" href="#__codelineno-26-10"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Week </span><span class="si">{</span><span class="n">week</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">day</span><span class="o">.</span><span class="n">date</span><span class="si">}</span><span class="s2"> — </span><span class="si">{</span><span class="n">day</span><span class="o">.</span><span class="n">total</span><span class="si">}</span><span class="s2"> cancellations&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a><span class="k">with</span> <span class="n">RinsedClient</span><span class="p">()</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
+<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">cancellations</span><span class="p">(</span><span class="s2">&quot;2026-03-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2026-03-14&quot;</span><span class="p">)</span>
+<a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>
+<a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a>    <span class="c1"># Group by week</span>
+<a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a>    <span class="k">for</span> <span class="n">day</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">days</span><span class="p">:</span>
+<a id="__codelineno-31-8" name="__codelineno-31-8" href="#__codelineno-31-8"></a>        <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">day</span><span class="o">.</span><span class="n">date</span><span class="p">)</span>
+<a id="__codelineno-31-9" name="__codelineno-31-9" href="#__codelineno-31-9"></a>        <span class="n">week</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">isocalendar</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+<a id="__codelineno-31-10" name="__codelineno-31-10" href="#__codelineno-31-10"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Week </span><span class="si">{</span><span class="n">week</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">day</span><span class="o">.</span><span class="n">date</span><span class="si">}</span><span class="s2"> — </span><span class="si">{</span><span class="n">day</span><span class="o">.</span><span class="n">total</span><span class="si">}</span><span class="s2"> cancellations&quot;</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="use-case-cancellations-for-a-single-location">Use Case — Cancellations for a Single Location<a class="headerlink" href="#use-case-cancellations-for-a-single-location" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">cancellations</span><span class="p">(</span>
-<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>    <span class="s2">&quot;2026-03-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2026-03-18&quot;</span><span class="p">,</span>
-<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a>    <span class="n">locations</span><span class="o">=</span><span class="s2">&quot;Naperville&quot;</span><span class="p">,</span>
-<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a><span class="p">)</span>
-<a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Naperville cancellations: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">total</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a><span class="k">for</span> <span class="n">day</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">days</span><span class="p">:</span>
-<a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">day</span><span class="o">.</span><span class="n">date</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">day</span><span class="o">.</span><span class="n">total</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">cancellations</span><span class="p">(</span>
+<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>    <span class="s2">&quot;2026-03-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2026-03-18&quot;</span><span class="p">,</span>
+<a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>    <span class="n">locations</span><span class="o">=</span><span class="s2">&quot;Naperville&quot;</span><span class="p">,</span>
+<a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a><span class="p">)</span>
+<a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Naperville cancellations: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">total</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a><span class="k">for</span> <span class="n">day</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">days</span><span class="p">:</span>
+<a id="__codelineno-32-7" name="__codelineno-32-7" href="#__codelineno-32-7"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">day</span><span class="o">.</span><span class="n">date</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">day</span><span class="o">.</span><span class="n">total</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
 <hr />
 <h2 id="daily-churn">Daily Churn<a class="headerlink" href="#daily-churn" title="Permanent link">&para;</a></h2>
 <p>Same daily data as <code>cancellations()</code>, plus the active member denominator for computing an overall churn rate. Useful when you want to see both the raw counts and the rate in context.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">daily_churn</span><span class="p">(</span><span class="s2">&quot;2026-03-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2026-03-18&quot;</span><span class="p">)</span>
-<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Churned: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">total_churned</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting members: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">starting_count</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Churn rate: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">rate</span><span class="si">:</span><span class="s2">.2%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">daily_churn</span><span class="p">(</span><span class="s2">&quot;2026-03-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2026-03-18&quot;</span><span class="p">)</span>
+<a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Churned: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">total_churned</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting members: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">starting_count</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Churn rate: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">rate</span><span class="si">:</span><span class="s2">.2%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="per-location-churn-rates">Per-Location Churn Rates<a class="headerlink" href="#per-location-churn-rates" title="Permanent link">&para;</a></h3>
 <p>The <code>by_location</code> field shows churn <strong>rates</strong> (not counts) per location:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="n">ranked</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">by_location</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a><span class="k">for</span> <span class="n">loc</span> <span class="ow">in</span> <span class="n">ranked</span><span class="p">[:</span><span class="mi">5</span><span class="p">]:</span>
-<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">loc</span><span class="o">.</span><span class="n">location_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">loc</span><span class="o">.</span><span class="n">value</span><span class="si">:</span><span class="s2">.2%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="n">ranked</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">by_location</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a><span class="k">for</span> <span class="n">loc</span> <span class="ow">in</span> <span class="n">ranked</span><span class="p">[:</span><span class="mi">5</span><span class="p">]:</span>
+<a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">loc</span><span class="o">.</span><span class="n">location_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">loc</span><span class="o">.</span><span class="n">value</span><span class="si">:</span><span class="s2">.2%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="daily-breakdown_1">Daily Breakdown<a class="headerlink" href="#daily-breakdown_1" title="Permanent link">&para;</a></h3>
 <p>The <code>days</code> field is identical to <code>cancellations()</code> — daily voluntary/involuntary/total counts:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="k">for</span> <span class="n">day</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">days</span><span class="p">:</span>
-<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">day</span><span class="o">.</span><span class="n">date</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">day</span><span class="o">.</span><span class="n">total</span><span class="si">}</span><span class="s2"> churned&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="k">for</span> <span class="n">day</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">days</span><span class="p">:</span>
+<a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">day</span><span class="o">.</span><span class="n">date</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">day</span><span class="o">.</span><span class="n">total</span><span class="si">}</span><span class="s2"> churned&quot;</span><span class="p">)</span>
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
