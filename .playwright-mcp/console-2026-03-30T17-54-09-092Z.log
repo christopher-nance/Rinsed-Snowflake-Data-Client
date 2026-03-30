@@ -1,0 +1,4 @@
+[   22161ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ https://nexus.washucarwash.com/api/v1/profile/dashboard-config:0
+[   31927ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ https://nexus.washucarwash.com/api/v1/profile/dashboard-config:0
+[   34335ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ https://nexus.washucarwash.com/api/v1/kpis/churn_rate?start_date=2026-02-01&end_date=2026-02-28:0
+[   44079ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ https://nexus.washucarwash.com/api/v1/profile/dashboard-config:0

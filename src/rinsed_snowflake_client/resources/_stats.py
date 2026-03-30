@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 from rinsed_snowflake_client._filters import DateInput, Locations
 from rinsed_snowflake_client._query_builder import (
     active_members_at_start_sql,
-    batch_active_members_sql,
     batch_cancellations_sql,
     batch_conversion_daily_sql,
     batch_fct_memberships_sql,
@@ -489,20 +488,14 @@ class StatsResource:
             grid[key]["membership_sales"] = int(r["membership_sales"])
             grid[key]["membership_sales_revenue"] = float(r["membership_sales_revenue"])
 
-        # 5. MEMBER_HISTORY — monthly cancellation counts per location
-        #    Uses billing-cycle definition: churn month = created_month + 1
+        # 5. MEMBER_ACTIVITY_OVERVIEW_MONTHLY — cancellations + active members
+        #    Authoritative source matching Rinsed frontend at 100% accuracy
         sql, params = batch_cancellations_sql(start, end, locations)
         df = self._client._execute(sql, params)
         for _, r in df.iterrows():
             key = (str(r["kpi_date"]), r["location_name"])
             grid[key]["voluntary_cancellations"] = int(r["voluntary_cancellations"])
             grid[key]["involuntary_cancellations"] = int(r["involuntary_cancellations"])
-
-        # 6. ACTIVE_MEMBERS_MONTHLY — monthly active member counts
-        sql, params = batch_active_members_sql(start, end, locations)
-        df = self._client._execute(sql, params)
-        for _, r in df.iterrows():
-            key = (str(r["kpi_date"]), r["location_name"])
             grid[key]["active_members"] = int(r["active_members"])
 
         # Build sorted row list

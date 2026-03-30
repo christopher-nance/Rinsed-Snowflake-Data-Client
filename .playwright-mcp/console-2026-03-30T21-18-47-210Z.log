@@ -1,0 +1,5 @@
+[    1052ms] [ERROR] Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID @ https://cdn.amplitude.com/libs/session-replay-browser-1.29.8-min.js.gz:0
+[    1397ms] [ERROR] Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID @ https://api.intellimize.co/context-v2/117902971:0
+[    1434ms] [ERROR] Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID @ https://log.intellimize.co/clientlogger:0
+[    1450ms] [ERROR] Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID @ https://log.intellimize.co/clientlogger:0
+[    7723ms] [ERROR] Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID @ https://www.googletagmanager.com/gtm.js?id=GTM-NRG742MW:0

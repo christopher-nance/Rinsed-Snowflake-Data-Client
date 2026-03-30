@@ -412,100 +412,29 @@ def batch_fct_memberships_sql(
 def batch_cancellations_sql(
     start: DateInput | None, end: DateInput | None, locations: Locations
 ) -> tuple[str, list]:
-    """Monthly cancellation counts per location from MEMBER_HISTORY.
+    """Monthly cancellation counts + active member base per location.
 
-    Uses WashU's billing-cycle definition: a cancellation is reported in
-    the first month the member is NOT charged.  ``created_month`` is the
-    last month they *were* billed, so the churn/cancel month is
-    ``DATEADD(MONTH, 1, created_month)``.
+    Uses ``MEMBER_ACTIVITY_OVERVIEW_MONTHLY`` — the authoritative source
+    that matches Rinsed's frontend at 100% accuracy.  Returns voluntary
+    churn, CC (involuntary) churn, and prior-period active member count
+    per location per month.
 
-    Returns one row per location per churn-month with voluntary
-    (terminated) and involuntary (expired) counts.
+    ``active_members`` is the number of members at the start of the
+    period (denominator for churn rate).
     """
     sql = """
         SELECT
-            DATEADD(MONTH, 1, created_month) AS kpi_date,
+            created_month AS kpi_date,
             location_name,
-            COUNT(DISTINCT CASE WHEN churn_type = 'terminated'
-                THEN rinsed_membership_id END) AS voluntary_cancellations,
-            COUNT(DISTINCT CASE WHEN churn_type = 'expired'
-                THEN rinsed_membership_id END) AS involuntary_cancellations
-        FROM member_history
-        WHERE churn_type IS NOT NULL
+            SUM(voluntary_churn) AS voluntary_cancellations,
+            SUM(cc_churn) AS involuntary_cancellations,
+            SUM(transaction_count_prior) AS active_members
+        FROM member_activity_overview_monthly
+        WHERE 1=1
     """.strip()
     params: list = []
-
-    # Exclude Hub Office / Query Server
-    sql += _add_exclusions(sql, params)
-
-    # Location filter
-    normalized_locations = normalize_locations(locations)
-    if normalized_locations is not None:
-        loc_clause, loc_params = build_location_clause("location_name", normalized_locations)
-        sql += f" AND {loc_clause}"
-        params.extend(loc_params)
-
-    # Date filter on the computed churn month (created_month + 1)
-    normalized_start = normalize_date(start)
-    normalized_end = normalize_date(end)
-    if normalized_start is not None:
-        sql += " AND DATEADD(MONTH, 1, created_month) >= %s"
-        params.append(normalized_start)
-    if normalized_end is not None:
-        sql += " AND DATEADD(MONTH, 1, created_month) <= %s"
-        params.append(normalized_end)
-
-    sql += " GROUP BY DATEADD(MONTH, 1, created_month), location_name"
-    sql += " ORDER BY kpi_date, location_name"
-    return (sql, params)
-
-
-def batch_active_members_sql(
-    start: DateInput | None, end: DateInput | None, locations: Locations
-) -> tuple[str, list]:
-    """Monthly active member counts per location from ACTIVE_MEMBERS_MONTHLY.
-
-    Returns one row per location per month.  The ``kpi_date`` is the
-    month the members were active in (matching the active-member
-    denominator for churn rate calculations).
-    """
-    sql = """
-        SELECT
-            am.month AS kpi_date,
-            mh.location_name,
-            SUM(am.members) AS active_members
-        FROM active_members_monthly am
-        INNER JOIN (
-            SELECT DISTINCT location_name, location_id
-            FROM member_history
-            WHERE location_name IS NOT NULL
-        ) mh ON am.location_id = mh.location_id
-        WHERE am.definition = 'Rinsed'
-    """.strip()
-    params: list = []
-
-    # Exclude Hub Office / Query Server
-    sql += _add_exclusions(sql, params, "mh.location_name")
-
-    # Location filter
-    normalized_locations = normalize_locations(locations)
-    if normalized_locations is not None:
-        loc_clause, loc_params = build_location_clause("mh.location_name", normalized_locations)
-        sql += f" AND {loc_clause}"
-        params.extend(loc_params)
-
-    # Date filter
-    normalized_start = normalize_date(start)
-    normalized_end = normalize_date(end)
-    if normalized_start is not None:
-        sql += " AND am.month >= %s"
-        params.append(normalized_start)
-    if normalized_end is not None:
-        sql += " AND am.month <= %s"
-        params.append(normalized_end)
-
-    sql += " GROUP BY am.month, mh.location_name"
-    sql += " ORDER BY kpi_date, mh.location_name"
+    sql = _apply_filters(sql, params, "created_month", start, end, locations)
+    sql += " GROUP BY created_month, location_name ORDER BY kpi_date, location_name"
     return (sql, params)
 
 

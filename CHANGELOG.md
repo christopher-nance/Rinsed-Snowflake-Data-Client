@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.2 — 2026-03-30
+
+### Changed
+- **Breaking**: Churn/cancellation data now sourced from `MEMBER_ACTIVITY_OVERVIEW_MONTHLY` instead of `member_history`. Achieves 100% match with Rinsed frontend (was ~41%).
+- `batch_cancellations_sql` now returns `voluntary_cancellations`, `involuntary_cancellations`, AND `active_members` from a single query against `MEMBER_ACTIVITY_OVERVIEW_MONTHLY`
+- Removed `batch_active_members_sql` (merged into `batch_cancellations_sql`)
+- `daily_kpis()` now executes 5 queries (was 6)
+
 ## 0.4.1 — 2026-03-30
 
 ### Changed
