@@ -1961,15 +1961,15 @@ Uses Rinsed's real-time churn_date for the daily breakdown.</p>
 
     <div class="doc doc-contents ">
 
-        <p>All non-churn KPIs plus cancellation counts at daily × location
-granularity in 5 queries.</p>
+        <p>All KPI components at daily × location granularity in 6 queries.</p>
 <p>Returns one :class:<code>DailyKPIRow</code> per location per day with raw
-component values.  Derived metrics (AWP, conversion rate) are
-intentionally left to the consumer to compute from the components.</p>
-<p>Churn <em>rates</em> are a monthly metric and are <strong>not</strong> included — use
-:meth:<code>voluntary_churn_rate</code> / :meth:<code>involuntary_churn_rate</code>
-separately.  Daily cancellation <em>counts</em> (voluntary and involuntary)
-are included per location per day.</p>
+component values.  Derived metrics (AWP, conversion rate, churn
+rate) are intentionally left to the consumer to compute from the
+components.</p>
+<p>Cancellation counts and active member counts use WashU's
+billing-cycle definition: a cancellation is reported in the first
+month the member is <strong>not</strong> charged.  These fields are monthly
+granularity (first-of-month dates) merged into the daily grid.</p>
 
 
     </div>

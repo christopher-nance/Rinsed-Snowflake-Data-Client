@@ -2057,12 +2057,17 @@
 <tr>
 <td><code>voluntary_cancellations</code></td>
 <td>int</td>
-<td>MEMBER_HISTORY</td>
+<td>MEMBER_HISTORY (monthly, billing-cycle)</td>
 </tr>
 <tr>
 <td><code>involuntary_cancellations</code></td>
 <td>int</td>
-<td>MEMBER_HISTORY</td>
+<td>MEMBER_HISTORY (monthly, billing-cycle)</td>
+</tr>
+<tr>
+<td><code>active_members</code></td>
+<td>int</td>
+<td>ACTIVE_MEMBERS_MONTHLY (monthly)</td>
 </tr>
 </tbody>
 </table>
@@ -2110,8 +2115,8 @@
 <p><code>report()</code> returns KPIs aggregated over the entire period. <code>daily_kpis()</code> returns them at daily granularity — one row per location per day. Use <code>daily_kpis()</code> when you need to import daily data into a database or build time-series charts.</p>
 </div>
 <div class="admonition info">
-<p class="admonition-title">Churn excluded</p>
-<p>Churn is a monthly metric based on billing cycles, not a daily one. Use <code>voluntary_churn_rate()</code> / <code>involuntary_churn_rate()</code> separately for churn data.</p>
+<p class="admonition-title">Cancellations &amp; active members use billing-cycle definition</p>
+<p>Cancellations are reported in the <strong>first month the member is NOT charged</strong> (WashU's billing-cycle definition). A member last billed in January who cancels Feb 5 appears as a February cancellation. These fields are monthly granularity (first-of-month dates). <code>active_members</code> provides the monthly denominator for churn rate computation: <code>churn_rate = (vol + invol) / prev_month_active * 100</code>.</p>
 </div>
 <h3 id="use-case-bulk-database-import">Use Case — Bulk Database Import<a class="headerlink" href="#use-case-bulk-database-import" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="kn">import</span> <span class="nn">sqlite3</span>
