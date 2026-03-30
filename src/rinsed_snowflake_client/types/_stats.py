@@ -156,6 +156,7 @@ class DailyKPIRow(RinsedModel):
     conversion_sales: int = 0
     voluntary_cancellations: int = 0
     involuntary_cancellations: int = 0
+    active_members: int = 0
 
 
 class DailyKPIResult(RinsedModel):

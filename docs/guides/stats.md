@@ -358,8 +358,9 @@ for row in result.rows[:3]:
 | `membership_sales_revenue` | float | FCT_MEMBERSHIPS |
 | `eligible_washes` | int | CONVERSION_DAILY |
 | `conversion_sales` | int | CONVERSION_DAILY |
-| `voluntary_cancellations` | int | MEMBER_HISTORY |
-| `involuntary_cancellations` | int | MEMBER_HISTORY |
+| `voluntary_cancellations` | int | MEMBER_HISTORY (monthly, billing-cycle) |
+| `involuntary_cancellations` | int | MEMBER_HISTORY (monthly, billing-cycle) |
+| `active_members` | int | ACTIVE_MEMBERS_MONTHLY (monthly) |
 
 ### Derived Metrics
 
@@ -384,8 +385,8 @@ for row in result.rows:
 !!! tip "vs. report()"
     `report()` returns KPIs aggregated over the entire period. `daily_kpis()` returns them at daily granularity — one row per location per day. Use `daily_kpis()` when you need to import daily data into a database or build time-series charts.
 
-!!! info "Churn excluded"
-    Churn is a monthly metric based on billing cycles, not a daily one. Use `voluntary_churn_rate()` / `involuntary_churn_rate()` separately for churn data.
+!!! info "Cancellations & active members use billing-cycle definition"
+    Cancellations are reported in the **first month the member is NOT charged** (WashU's billing-cycle definition). A member last billed in January who cancels Feb 5 appears as a February cancellation. These fields are monthly granularity (first-of-month dates). `active_members` provides the monthly denominator for churn rate computation: `churn_rate = (vol + invol) / prev_month_active * 100`.
 
 ### Use Case — Bulk Database Import
 

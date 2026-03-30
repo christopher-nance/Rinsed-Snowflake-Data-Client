@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.4.1 — 2026-03-30
+
+### Changed
+- **Breaking**: `batch_cancellations_sql` now uses WashU's billing-cycle definition — cancellations are reported in the first month the member is NOT charged (`DATEADD(MONTH, 1, created_month)`) instead of the real-time `churn_date`. This changes `voluntary_cancellations` and `involuntary_cancellations` values in `DailyKPIRow` from daily to monthly granularity.
+
+### Added
+- `active_members` field on `DailyKPIRow` — monthly active member count per location from `ACTIVE_MEMBERS_MONTHLY`
+- `batch_active_members_sql` query function for monthly active member counts
+- `daily_kpis()` now executes 6 queries (was 5) — adds active member denominator for churn rate computation
+
+### Notes
+- Cancellation and active member rows use first-of-month dates in the grid. Daily KPI rows without cancellation data keep `0` defaults.
+- Consumer computes churn rate as `(voluntary + involuntary) / active_members_prev_month * 100`.
+
 ## 0.4.0 — 2026-03-30
 
 ### Added

@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 from rinsed_snowflake_client._filters import DateInput, Locations
 from rinsed_snowflake_client._query_builder import (
     active_members_at_start_sql,
+    batch_active_members_sql,
     batch_cancellations_sql,
     batch_conversion_daily_sql,
     batch_fct_memberships_sql,
@@ -418,17 +419,17 @@ class StatsResource:
         end: DateInput,
         locations: Locations = None,
     ) -> DailyKPIResult:
-        """All non-churn KPIs plus cancellation counts at daily × location
-        granularity in 5 queries.
+        """All KPI components at daily × location granularity in 6 queries.
 
         Returns one :class:`DailyKPIRow` per location per day with raw
-        component values.  Derived metrics (AWP, conversion rate) are
-        intentionally left to the consumer to compute from the components.
+        component values.  Derived metrics (AWP, conversion rate, churn
+        rate) are intentionally left to the consumer to compute from the
+        components.
 
-        Churn *rates* are a monthly metric and are **not** included — use
-        :meth:`voluntary_churn_rate` / :meth:`involuntary_churn_rate`
-        separately.  Daily cancellation *counts* (voluntary and involuntary)
-        are included per location per day.
+        Cancellation counts and active member counts use WashU's
+        billing-cycle definition: a cancellation is reported in the first
+        month the member is **not** charged.  These fields are monthly
+        granularity (first-of-month dates) merged into the daily grid.
         """
         from collections import defaultdict
 
@@ -448,6 +449,7 @@ class StatsResource:
                 "conversion_sales": 0,
                 "voluntary_cancellations": 0,
                 "involuntary_cancellations": 0,
+                "active_members": 0,
             }
         )
 
@@ -487,13 +489,21 @@ class StatsResource:
             grid[key]["membership_sales"] = int(r["membership_sales"])
             grid[key]["membership_sales_revenue"] = float(r["membership_sales_revenue"])
 
-        # 5. MEMBER_HISTORY — daily cancellation counts per location
+        # 5. MEMBER_HISTORY — monthly cancellation counts per location
+        #    Uses billing-cycle definition: churn month = created_month + 1
         sql, params = batch_cancellations_sql(start, end, locations)
         df = self._client._execute(sql, params)
         for _, r in df.iterrows():
             key = (str(r["kpi_date"]), r["location_name"])
             grid[key]["voluntary_cancellations"] = int(r["voluntary_cancellations"])
             grid[key]["involuntary_cancellations"] = int(r["involuntary_cancellations"])
+
+        # 6. ACTIVE_MEMBERS_MONTHLY — monthly active member counts
+        sql, params = batch_active_members_sql(start, end, locations)
+        df = self._client._execute(sql, params)
+        for _, r in df.iterrows():
+            key = (str(r["kpi_date"]), r["location_name"])
+            grid[key]["active_members"] = int(r["active_members"])
 
         # Build sorted row list
         rows = [
