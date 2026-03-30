@@ -409,6 +409,31 @@ def batch_fct_memberships_sql(
     return (sql, params)
 
 
+def batch_cancellations_sql(
+    start: DateInput | None, end: DateInput | None, locations: Locations
+) -> tuple[str, list]:
+    """Daily cancellation counts per location from MEMBER_HISTORY.
+
+    Returns voluntary (terminated) and involuntary (expired) counts
+    per location per day using Rinsed's real-time churn_date.
+    """
+    sql = """
+        SELECT
+            churn_date AS kpi_date,
+            location_name,
+            COUNT(DISTINCT CASE WHEN churn_type = 'terminated'
+                THEN rinsed_membership_id END) AS voluntary_cancellations,
+            COUNT(DISTINCT CASE WHEN churn_type = 'expired'
+                THEN rinsed_membership_id END) AS involuntary_cancellations
+        FROM member_history
+        WHERE churn_type IS NOT NULL
+    """.strip()
+    params: list = []
+    sql = _apply_filters(sql, params, "churn_date", start, end, locations)
+    sql += " GROUP BY churn_date, location_name ORDER BY kpi_date, location_name"
+    return (sql, params)
+
+
 # ---------------------------------------------------------------------------
 # Daily cancellation queries
 # ---------------------------------------------------------------------------

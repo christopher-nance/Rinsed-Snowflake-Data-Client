@@ -358,6 +358,8 @@ for row in result.rows[:3]:
 | `membership_sales_revenue` | float | FCT_MEMBERSHIPS |
 | `eligible_washes` | int | CONVERSION_DAILY |
 | `conversion_sales` | int | CONVERSION_DAILY |
+| `voluntary_cancellations` | int | MEMBER_HISTORY |
+| `involuntary_cancellations` | int | MEMBER_HISTORY |
 
 ### Derived Metrics
 

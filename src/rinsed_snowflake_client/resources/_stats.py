@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 from rinsed_snowflake_client._filters import DateInput, Locations
 from rinsed_snowflake_client._query_builder import (
     active_members_at_start_sql,
+    batch_cancellations_sql,
     batch_conversion_daily_sql,
     batch_fct_memberships_sql,
     batch_fct_revenue_sql,
@@ -417,15 +418,17 @@ class StatsResource:
         end: DateInput,
         locations: Locations = None,
     ) -> DailyKPIResult:
-        """All non-churn KPIs at daily × location granularity in 4 queries.
+        """All non-churn KPIs plus cancellation counts at daily × location
+        granularity in 5 queries.
 
         Returns one :class:`DailyKPIRow` per location per day with raw
         component values.  Derived metrics (AWP, conversion rate) are
         intentionally left to the consumer to compute from the components.
 
-        Churn is a monthly metric and is **not** included — use
+        Churn *rates* are a monthly metric and are **not** included — use
         :meth:`voluntary_churn_rate` / :meth:`involuntary_churn_rate`
-        separately when needed.
+        separately.  Daily cancellation *counts* (voluntary and involuntary)
+        are included per location per day.
         """
         from collections import defaultdict
 
@@ -443,6 +446,8 @@ class StatsResource:
                 "membership_sales_revenue": 0.0,
                 "eligible_washes": 0,
                 "conversion_sales": 0,
+                "voluntary_cancellations": 0,
+                "involuntary_cancellations": 0,
             }
         )
 
@@ -481,6 +486,14 @@ class StatsResource:
             grid[key]["membership_revenue_renewal"] = float(r["membership_revenue_renewal"])
             grid[key]["membership_sales"] = int(r["membership_sales"])
             grid[key]["membership_sales_revenue"] = float(r["membership_sales_revenue"])
+
+        # 5. MEMBER_HISTORY — daily cancellation counts per location
+        sql, params = batch_cancellations_sql(start, end, locations)
+        df = self._client._execute(sql, params)
+        for _, r in df.iterrows():
+            key = (str(r["kpi_date"]), r["location_name"])
+            grid[key]["voluntary_cancellations"] = int(r["voluntary_cancellations"])
+            grid[key]["involuntary_cancellations"] = int(r["involuntary_cancellations"])
 
         # Build sorted row list
         rows = [
