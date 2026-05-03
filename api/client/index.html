@@ -883,6 +883,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#rinsed_snowflake_client.resources.StatsResource.recharge_churn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        recharge_churn
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#rinsed_snowflake_client.resources.StatsResource.report" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1311,6 +1322,17 @@
     <span class="md-ellipsis">
       
         new_membership_sales
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rinsed_snowflake_client.resources.StatsResource.recharge_churn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        recharge_churn
       
     </span>
   </a>
@@ -2088,6 +2110,36 @@ granularity (first-of-month dates) merged into the daily grid.</p>
     <div class="doc doc-contents ">
 
         <p>Count of new + rejoin membership sales.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="rinsed_snowflake_client.resources.StatsResource.recharge_churn" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">recharge_churn</span><span class="p">(</span><span class="n">start</span><span class="p">:</span> <span class="n">DateInput</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">DateInput</span><span class="p">,</span> <span class="n">locations</span><span class="p">:</span> <span class="n">Locations</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RechargeChurnResult</span></code>
+
+<a href="#rinsed_snowflake_client.resources.StatsResource.recharge_churn" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Daily churn using WashU's recharge methodology.</p>
+<p>For each day D in [start, end], the denominator is the count of
+recharges + new members on the same calendar day one month prior.
+Retained = recharges-only on day D.  Churned = denominator - retained.</p>
+<p>Uses Stripe-style anniversary billing: <code>DATEADD(MONTH, 1, ...)</code>
+clamps to end-of-month in short months and the original day
+returns in longer months (Jan 31 -&gt; Feb 28 -&gt; Mar 31).</p>
+<p>Voluntary/involuntary counts are sourced from MEMBER_HISTORY
+by <code>churn_date</code> and overlaid onto the daily results.  These
+use a different date definition (cancellation event date vs
+missed billing date), so <code>voluntary + involuntary</code> may not
+equal <code>churned</code> on any given day.  Monthly aggregates are
+generally close.</p>
 
 
     </div>
