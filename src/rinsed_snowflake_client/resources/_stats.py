@@ -49,6 +49,20 @@ from rinsed_snowflake_client.types._stats import (
 if TYPE_CHECKING:
     from rinsed_snowflake_client._client import RinsedClient
 
+import math
+
+
+def _safe_int(value) -> int:
+    if value is None or (isinstance(value, float) and math.isnan(value)):
+        return 0
+    return int(value)
+
+
+def _safe_float(value) -> float:
+    if value is None or (isinstance(value, float) and math.isnan(value)):
+        return 0.0
+    return float(value)
+
 
 class StatsResource:
     """Analytics and KPI methods.
@@ -72,8 +86,8 @@ class StatsResource:
         """Total washes (retail + member + free) from CONVERSION_DAILY."""
         sql, params = total_car_count_sql(start, end, locations)
         df = self._client._execute(sql, params)
-        by_loc = [LocationMetric(location_name=r["location_name"], value=int(r["value"])) for _, r in df.iterrows()]
-        total = int(df["value"].sum()) if not df.empty else 0
+        by_loc = [LocationMetric(location_name=r["location_name"], value=_safe_int(r["value"])) for _, r in df.iterrows()]
+        total = _safe_int(df["value"].sum()) if not df.empty else 0
         return CarCountResult(total=total, by_location=by_loc, period_start=str(start), period_end=str(end))
 
     def retail_car_count(
@@ -85,8 +99,8 @@ class StatsResource:
         """Retail (non-member) wash count."""
         sql, params = retail_car_count_sql(start, end, locations)
         df = self._client._execute(sql, params)
-        by_loc = [LocationMetric(location_name=r["location_name"], value=int(r["value"])) for _, r in df.iterrows()]
-        total = int(df["value"].sum()) if not df.empty else 0
+        by_loc = [LocationMetric(location_name=r["location_name"], value=_safe_int(r["value"])) for _, r in df.iterrows()]
+        total = _safe_int(df["value"].sum()) if not df.empty else 0
         return CarCountResult(total=total, by_location=by_loc, period_start=str(start), period_end=str(end))
 
     def member_car_count(
@@ -98,8 +112,8 @@ class StatsResource:
         """Membership redemption (member wash) count."""
         sql, params = member_car_count_sql(start, end, locations)
         df = self._client._execute(sql, params)
-        by_loc = [LocationMetric(location_name=r["location_name"], value=int(r["value"])) for _, r in df.iterrows()]
-        total = int(df["value"].sum()) if not df.empty else 0
+        by_loc = [LocationMetric(location_name=r["location_name"], value=_safe_int(r["value"])) for _, r in df.iterrows()]
+        total = _safe_int(df["value"].sum()) if not df.empty else 0
         return CarCountResult(total=total, by_location=by_loc, period_start=str(start), period_end=str(end))
 
     # ------------------------------------------------------------------
@@ -124,8 +138,8 @@ class StatsResource:
         """
         sql, params = active_member_count_sql(start, end, locations)
         df = self._client._execute(sql, params)
-        by_loc = [LocationMetric(location_name=r["location_name"], value=int(r["member_count"])) for _, r in df.iterrows()]
-        total = int(df["member_count"].sum()) if not df.empty else 0
+        by_loc = [LocationMetric(location_name=r["location_name"], value=_safe_int(r["member_count"])) for _, r in df.iterrows()]
+        total = _safe_int(df["member_count"].sum()) if not df.empty else 0
         snapshot = str(df["snapshot_date"].iloc[0]) if not df.empty else str(end)
         return ActiveMemberResult(
             total=total, snapshot_date=snapshot,
@@ -145,9 +159,9 @@ class StatsResource:
         """Revenue from retail (non-member) washes."""
         sql, params = retail_revenue_sql(start, end, locations)
         df = self._client._execute(sql, params)
-        by_loc = [LocationMetric(location_name=r["location_name"], value=float(r["total_revenue"])) for _, r in df.iterrows()]
-        total = float(df["total_revenue"].sum()) if not df.empty else 0.0
-        tx_count = int(df["transaction_count"].sum()) if not df.empty else 0
+        by_loc = [LocationMetric(location_name=r["location_name"], value=_safe_float(r["total_revenue"])) for _, r in df.iterrows()]
+        total = _safe_float(df["total_revenue"].sum()) if not df.empty else 0.0
+        tx_count = _safe_int(df["transaction_count"].sum()) if not df.empty else 0
         return RevenueResult(total=total, transaction_count=tx_count, by_location=by_loc, period_start=str(start), period_end=str(end))
 
     def membership_revenue(
@@ -159,10 +173,10 @@ class StatsResource:
         """Revenue from new + renewed memberships."""
         sql, params = membership_revenue_sql(start, end, locations)
         df = self._client._execute(sql, params)
-        by_loc = [LocationMetric(location_name=r["location_name"], value=float(r["total_revenue"])) for _, r in df.iterrows()]
-        total = float(df["total_revenue"].sum()) if not df.empty else 0.0
-        new_rev = float(df["new_revenue"].sum()) if not df.empty else 0.0
-        renewal_rev = float(df["renewal_revenue"].sum()) if not df.empty else 0.0
+        by_loc = [LocationMetric(location_name=r["location_name"], value=_safe_float(r["total_revenue"])) for _, r in df.iterrows()]
+        total = _safe_float(df["total_revenue"].sum()) if not df.empty else 0.0
+        new_rev = _safe_float(df["new_revenue"].sum()) if not df.empty else 0.0
+        renewal_rev = _safe_float(df["renewal_revenue"].sum()) if not df.empty else 0.0
         return MembershipRevenueResult(
             total=total, new_revenue=new_rev, renewal_revenue=renewal_rev,
             by_location=by_loc, period_start=str(start), period_end=str(end),
@@ -199,9 +213,9 @@ class StatsResource:
         """Count of new + rejoin membership sales."""
         sql, params = new_membership_sales_sql(start, end, locations)
         df = self._client._execute(sql, params)
-        by_loc = [LocationMetric(location_name=r["location_name"], value=int(r["value"])) for _, r in df.iterrows()]
-        total = int(df["value"].sum()) if not df.empty else 0
-        total_rev = float(df["total_revenue"].sum()) if not df.empty else 0.0
+        by_loc = [LocationMetric(location_name=r["location_name"], value=_safe_int(r["value"])) for _, r in df.iterrows()]
+        total = _safe_int(df["value"].sum()) if not df.empty else 0
+        total_rev = _safe_float(df["total_revenue"].sum()) if not df.empty else 0.0
         return MembershipSalesResult(
             total=total, total_revenue=total_rev, by_location=by_loc,
             period_start=str(start), period_end=str(end),
@@ -221,14 +235,14 @@ class StatsResource:
         sql, params = conversion_rate_sql(start, end, locations)
         df = self._client._execute(sql, params)
 
-        total_sales = int(df["sales"].sum()) if not df.empty else 0
-        total_eligible = int(df["eligible_washes"].sum()) if not df.empty else 0
+        total_sales = _safe_int(df["sales"].sum()) if not df.empty else 0
+        total_eligible = _safe_int(df["eligible_washes"].sum()) if not df.empty else 0
         rate = total_sales / total_eligible if total_eligible > 0 else 0.0
 
         by_loc = []
         for _, r in df.iterrows():
-            loc_eligible = int(r["eligible_washes"])
-            loc_rate = int(r["sales"]) / loc_eligible if loc_eligible > 0 else 0.0
+            loc_eligible = _safe_int(r["eligible_washes"])
+            loc_rate = _safe_int(r["sales"]) / loc_eligible if loc_eligible > 0 else 0.0
             by_loc.append(LocationMetric(location_name=r["location_name"], value=round(loc_rate, 4)))
 
         return ConversionResult(
@@ -257,18 +271,18 @@ class StatsResource:
         am_df = self._client._execute(am_sql, am_params)
 
         # Build per-location rates
-        am_map = {r["location_name"]: int(r["total_members"]) for _, r in am_df.iterrows()}
+        am_map = {r["location_name"]: _safe_int(r["total_members"]) for _, r in am_df.iterrows()}
         by_loc = []
         total_churned = 0
         for _, r in churn_df.iterrows():
             loc = r["location_name"]
-            churned = int(r["churned"])
+            churned = _safe_int(r["churned"])
             total_churned += churned
             active = am_map.get(loc, 0)
             loc_rate = churned / active if active > 0 else 0.0
             by_loc.append(LocationMetric(location_name=loc, value=round(loc_rate, 4)))
 
-        total_active = int(am_df["total_members"].sum()) if not am_df.empty else 0
+        total_active = _safe_int(am_df["total_members"].sum()) if not am_df.empty else 0
         rate = total_churned / total_active if total_active > 0 else 0.0
 
         return ChurnResult(
@@ -319,9 +333,9 @@ class StatsResource:
             if date_str not in day_map:
                 day_map[date_str] = {"voluntary": 0, "involuntary": 0}
             if r["churn_type"] == "terminated":
-                day_map[date_str]["voluntary"] = int(r["cnt"])
+                day_map[date_str]["voluntary"] = _safe_int(r["cnt"])
             elif r["churn_type"] == "expired":
-                day_map[date_str]["involuntary"] = int(r["cnt"])
+                day_map[date_str]["involuntary"] = _safe_int(r["cnt"])
 
         days = []
         total_vol = 0
@@ -336,7 +350,7 @@ class StatsResource:
             ))
 
         by_loc = [
-            LocationMetric(location_name=r["location_name"], value=int(r["cnt"]))
+            LocationMetric(location_name=r["location_name"], value=_safe_int(r["cnt"]))
             for _, r in loc_df.iterrows()
         ]
 
@@ -385,11 +399,11 @@ class StatsResource:
         # Get active member denominator (previous month)
         am_sql, am_params = active_members_at_start_sql(start, locations)
         am_df = self._client._execute(am_sql, am_params)
-        total_active = int(am_df["total_members"].sum()) if not am_df.empty else 0
+        total_active = _safe_int(am_df["total_members"].sum()) if not am_df.empty else 0
         rate = total_churned / total_active if total_active > 0 else 0.0
 
         # Per-location churn rates
-        am_map = {r["location_name"]: int(r["total_members"]) for _, r in am_df.iterrows()}
+        am_map = {r["location_name"]: _safe_int(r["total_members"]) for _, r in am_df.iterrows()}
         loc_rates = []
         for loc_metric in by_loc:
             active = am_map.get(loc_metric.location_name, 0)
@@ -450,9 +464,9 @@ class StatsResource:
             if ds not in vol_map:
                 vol_map[ds] = {"voluntary": 0, "involuntary": 0}
             if r["churn_type"] == "terminated":
-                vol_map[ds]["voluntary"] = int(r["cnt"])
+                vol_map[ds]["voluntary"] = _safe_int(r["cnt"])
             elif r["churn_type"] == "expired":
-                vol_map[ds]["involuntary"] = int(r["cnt"])
+                vol_map[ds]["involuntary"] = _safe_int(r["cnt"])
 
         # Aggregate by date for daily breakdown
         day_agg = (
@@ -468,9 +482,9 @@ class StatsResource:
         total_inv = 0
         for _, r in day_agg.iterrows():
             ds = str(r["churn_date"])
-            d = int(r["denominator"])
-            ret = int(r["retained"])
-            ch = int(r["churned"])
+            d = _safe_int(r["denominator"])
+            ret = _safe_int(r["retained"])
+            ch = _safe_int(r["churned"])
             rate = ch / d if d > 0 else 0.0
             v = vol_map.get(ds, {}).get("voluntary", 0)
             i = vol_map.get(ds, {}).get("involuntary", 0)
@@ -489,15 +503,15 @@ class StatsResource:
         )
         by_loc = []
         for loc, r in loc_agg.iterrows():
-            d = int(r["denominator"])
-            rate = int(r["churned"]) / d if d > 0 else 0.0
+            d = _safe_int(r["denominator"])
+            rate = _safe_int(r["churned"]) / d if d > 0 else 0.0
             by_loc.append(LocationMetric(
                 location_name=loc, value=round(rate, 6),
             ))
 
-        total_denom = int(churn_df["denominator"].sum()) if not churn_df.empty else 0
-        total_retained = int(churn_df["retained"].sum()) if not churn_df.empty else 0
-        total_churned = int(churn_df["churned"].sum()) if not churn_df.empty else 0
+        total_denom = _safe_int(churn_df["denominator"].sum()) if not churn_df.empty else 0
+        total_retained = _safe_int(churn_df["retained"].sum()) if not churn_df.empty else 0
+        total_churned = _safe_int(churn_df["churned"].sum()) if not churn_df.empty else 0
         cum_rate = total_churned / total_denom if total_denom > 0 else 0.0
 
         return RechargeChurnResult(
@@ -595,36 +609,36 @@ class StatsResource:
         df = self._client._execute(sql, params)
         for _, r in df.iterrows():
             key = (str(r["kpi_date"]), r["location_name"])
-            grid[key]["total_car_count"] = int(r["total_car_count"])
-            grid[key]["conversion_sales"] = int(r["conversion_sales"])
-            grid[key]["eligible_washes"] = int(r["eligible_washes"])
+            grid[key]["total_car_count"] = _safe_int(r["total_car_count"])
+            grid[key]["conversion_sales"] = _safe_int(r["conversion_sales"])
+            grid[key]["eligible_washes"] = _safe_int(r["eligible_washes"])
 
         # 2. FCT_REVENUE — retail car count + revenue
         sql, params = batch_fct_revenue_sql(start, end, locations)
         df = self._client._execute(sql, params)
         for _, r in df.iterrows():
             key = (str(r["kpi_date"]), r["location_name"])
-            grid[key]["retail_car_count"] = int(r["retail_car_count"])
-            grid[key]["retail_revenue"] = float(r["retail_revenue"])
-            grid[key]["retail_transaction_count"] = int(r["retail_transaction_count"])
+            grid[key]["retail_car_count"] = _safe_int(r["retail_car_count"])
+            grid[key]["retail_revenue"] = _safe_float(r["retail_revenue"])
+            grid[key]["retail_transaction_count"] = _safe_int(r["retail_transaction_count"])
 
         # 3. FCT_WASHES — member car count
         sql, params = batch_fct_washes_sql(start, end, locations)
         df = self._client._execute(sql, params)
         for _, r in df.iterrows():
             key = (str(r["kpi_date"]), r["location_name"])
-            grid[key]["member_car_count"] = int(r["member_car_count"])
+            grid[key]["member_car_count"] = _safe_int(r["member_car_count"])
 
         # 4. FCT_MEMBERSHIPS — membership revenue + sales
         sql, params = batch_fct_memberships_sql(start, end, locations)
         df = self._client._execute(sql, params)
         for _, r in df.iterrows():
             key = (str(r["kpi_date"]), r["location_name"])
-            grid[key]["membership_revenue"] = float(r["membership_revenue"])
-            grid[key]["membership_revenue_new"] = float(r["membership_revenue_new"])
-            grid[key]["membership_revenue_renewal"] = float(r["membership_revenue_renewal"])
-            grid[key]["membership_sales"] = int(r["membership_sales"])
-            grid[key]["membership_sales_revenue"] = float(r["membership_sales_revenue"])
+            grid[key]["membership_revenue"] = _safe_float(r["membership_revenue"])
+            grid[key]["membership_revenue_new"] = _safe_float(r["membership_revenue_new"])
+            grid[key]["membership_revenue_renewal"] = _safe_float(r["membership_revenue_renewal"])
+            grid[key]["membership_sales"] = _safe_int(r["membership_sales"])
+            grid[key]["membership_sales_revenue"] = _safe_float(r["membership_sales_revenue"])
 
         # 5. MEMBER_ACTIVITY_OVERVIEW_MONTHLY — cancellations + active members
         #    Authoritative source matching Rinsed frontend at 100% accuracy
@@ -632,9 +646,9 @@ class StatsResource:
         df = self._client._execute(sql, params)
         for _, r in df.iterrows():
             key = (str(r["kpi_date"]), r["location_name"])
-            grid[key]["voluntary_cancellations"] = int(r["voluntary_cancellations"])
-            grid[key]["involuntary_cancellations"] = int(r["involuntary_cancellations"])
-            grid[key]["active_members"] = int(r["active_members"])
+            grid[key]["voluntary_cancellations"] = _safe_int(r["voluntary_cancellations"])
+            grid[key]["involuntary_cancellations"] = _safe_int(r["involuntary_cancellations"])
+            grid[key]["active_members"] = _safe_int(r["active_members"])
 
         # Build sorted row list
         rows = [

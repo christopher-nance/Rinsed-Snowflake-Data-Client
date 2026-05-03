@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.1 — 2026-05-03
+
+### Fixed
+- Handle NaN/None values gracefully when constructing result objects from Snowflake query results. All `int()` and `float()` conversions now use `_safe_int()` / `_safe_float()` helpers that coerce NaN/None to 0, preventing `ValueError: cannot convert float NaN to integer` crashes.
+
 ## 0.6.0 — 2026-05-03
 
 ### Added
