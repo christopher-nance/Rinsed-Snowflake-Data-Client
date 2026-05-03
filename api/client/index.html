@@ -773,6 +773,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#rinsed_snowflake_client.resources.StatsResource.active_member_count" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        active_member_count
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#rinsed_snowflake_client.resources.StatsResource.average_wash_price" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1195,6 +1206,17 @@
   
     <nav class="md-nav" aria-label="StatsResource">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rinsed_snowflake_client.resources.StatsResource.active_member_count" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        active_member_count
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#rinsed_snowflake_client.resources.StatsResource.average_wash_price" class="md-nav__link">
@@ -1872,6 +1894,30 @@ the <code>WEB_INGRESS.LOCATIONS</code> table.</p>
 
 
 
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="rinsed_snowflake_client.resources.StatsResource.active_member_count" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">active_member_count</span><span class="p">(</span><span class="n">start</span><span class="p">:</span> <span class="n">DateInput</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">DateInput</span><span class="p">,</span> <span class="n">locations</span><span class="p">:</span> <span class="n">Locations</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ActiveMemberResult</span></code>
+
+<a href="#rinsed_snowflake_client.resources.StatsResource.active_member_count" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Active member roster count at end of period.</p>
+<p>Returns the number of active members on the last available date
+within the given range. This is a stock measure (point-in-time
+snapshot) — do not sum across dates.</p>
+<p>Sourced from ACTIVE_MEMBERS_RINSED with location mapping from
+FCT_REVENUE. Matches the Rinsed frontend "Active Members Over
+Time" figure.</p>
+
+
+    </div>
+
+</div>
 
 <div class="doc doc-object doc-function">
 
