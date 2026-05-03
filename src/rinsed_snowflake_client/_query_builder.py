@@ -556,3 +556,92 @@ def active_member_count_sql(
 
     sql += " GROUP BY a.dte, lm.location_name ORDER BY lm.location_name"
     return (sql, params)
+
+
+# ---------------------------------------------------------------------------
+# Recharge-based churn (WashU / Stripe anniversary method)
+# ---------------------------------------------------------------------------
+
+
+def recharge_churn_sql(
+    start: DateInput | None, end: DateInput | None, locations: Locations
+) -> tuple[str, list]:
+    """Daily churn via WashU's recharge methodology.
+
+    Uses Stripe-style anniversary billing: DATEADD(MONTH, 1, ...)
+    clamps to end-of-month in short months and the original day
+    returns in longer months.
+
+    Denominator = prior month same-day (recharges + new members).
+    Retained = current day recharges only (no new members).
+    Churned = denominator - retained.
+    """
+    normalized_start = normalize_date(start)
+    normalized_end = normalize_date(end)
+
+    sql = """
+        WITH prior_month AS (
+            SELECT
+                DATEADD(MONTH, 1, DATE(created_at)) AS expected_date,
+                location_name,
+                COUNT(*) AS denominator
+            FROM fct_memberships
+            WHERE transaction_category IN (
+                    'renewed membership', 'new membership', 'rejoin membership'
+                  )
+              AND location_name IS NOT NULL
+              AND location_name NOT IN ('Hub Office', 'Query Server')
+              AND DATE(created_at) >= DATEADD(MONTH, -1, %s)
+              AND DATE(created_at) <= DATEADD(MONTH, -1, %s)
+    """.strip()
+    params: list = [normalized_start, normalized_end]
+
+    normalized_locations = normalize_locations(locations)
+    if normalized_locations is not None:
+        loc_clause, loc_params = build_location_clause(
+            "location_name", normalized_locations
+        )
+        sql += f" AND {loc_clause}"
+        params.extend(loc_params)
+
+    sql += """
+            GROUP BY DATEADD(MONTH, 1, DATE(created_at)), location_name
+        ),
+        current_recharges AS (
+            SELECT
+                DATE(created_at) AS recharge_date,
+                location_name,
+                COUNT(*) AS retained
+            FROM fct_memberships
+            WHERE transaction_category = 'renewed membership'
+              AND location_name IS NOT NULL
+              AND location_name NOT IN ('Hub Office', 'Query Server')
+              AND DATE(created_at) >= %s
+              AND DATE(created_at) <= %s
+    """
+    params.extend([normalized_start, normalized_end])
+
+    if normalized_locations is not None:
+        loc_clause, loc_params = build_location_clause(
+            "location_name", normalized_locations
+        )
+        sql += f" AND {loc_clause}"
+        params.extend(loc_params)
+
+    sql += """
+            GROUP BY DATE(created_at), location_name
+        )
+        SELECT
+            p.expected_date AS churn_date,
+            p.location_name,
+            p.denominator,
+            COALESCE(c.retained, 0) AS retained,
+            p.denominator - COALESCE(c.retained, 0) AS churned
+        FROM prior_month p
+        LEFT JOIN current_recharges c
+            ON c.recharge_date = p.expected_date
+            AND c.location_name = p.location_name
+        ORDER BY p.expected_date, p.location_name
+    """
+
+    return (sql.strip(), params)

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0 — 2026-05-03
+
+### Added
+- `client.stats.recharge_churn(start, end, locations?)` — daily churn using WashU's recharge methodology. Denominator = prior month same-day (recharges + new members). Retained = current day recharges only. Uses Stripe-style `DATEADD(MONTH, 1, ...)` for day matching — clamps to end-of-month in short months, original day returns in longer months.
+- Voluntary/involuntary overlay from `MEMBER_HISTORY` by `churn_date`, documented as using a different date definition than the recharge methodology.
+- New types: `DailyRechargeChurn` (per-day breakdown with denominator, retained, churned, rate, vol/invol), `RechargeChurnResult` (aggregate with cumulative rate and by-location).
+- Comprehensive churn methodology docs with Stripe billing examples and edge case documentation.
+
 ## 0.5.0 — 2026-05-03
 
 ### Changed

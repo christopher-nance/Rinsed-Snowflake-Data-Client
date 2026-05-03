@@ -21,6 +21,7 @@ from rinsed_snowflake_client._query_builder import (
     member_car_count_sql,
     membership_revenue_sql,
     new_membership_sales_sql,
+    recharge_churn_sql,
     retail_car_count_sql,
     retail_revenue_sql,
     total_car_count_sql,
@@ -36,9 +37,11 @@ from rinsed_snowflake_client.types._stats import (
     DailyChurnResult,
     DailyKPIResult,
     DailyKPIRow,
+    DailyRechargeChurn,
     LocationMetric,
     MembershipRevenueResult,
     MembershipSalesResult,
+    RechargeChurnResult,
     RevenueResult,
     StatsReport,
 )
@@ -403,6 +406,109 @@ class StatsResource:
             rate=round(rate, 4),
             days=days,
             by_location=loc_rates,
+            period_start=str(start),
+            period_end=str(end),
+        )
+
+    # ------------------------------------------------------------------
+    # Recharge-based churn (WashU methodology)
+    # ------------------------------------------------------------------
+
+    def recharge_churn(
+        self,
+        start: DateInput,
+        end: DateInput,
+        locations: Locations = None,
+    ) -> RechargeChurnResult:
+        """Daily churn using WashU's recharge methodology.
+
+        For each day D in [start, end], the denominator is the count of
+        recharges + new members on the same calendar day one month prior.
+        Retained = recharges-only on day D.  Churned = denominator - retained.
+
+        Uses Stripe-style anniversary billing: ``DATEADD(MONTH, 1, ...)``
+        clamps to end-of-month in short months and the original day
+        returns in longer months (Jan 31 -> Feb 28 -> Mar 31).
+
+        Voluntary/involuntary counts are sourced from MEMBER_HISTORY
+        by ``churn_date`` and overlaid onto the daily results.  These
+        use a different date definition (cancellation event date vs
+        missed billing date), so ``voluntary + involuntary`` may not
+        equal ``churned`` on any given day.  Monthly aggregates are
+        generally close.
+        """
+        sql, params = recharge_churn_sql(start, end, locations)
+        churn_df = self._client._execute(sql, params)
+
+        # Vol/invol overlay from MEMBER_HISTORY
+        vol_sql, vol_params = daily_cancellations_sql(start, end, locations)
+        vol_df = self._client._execute(vol_sql, vol_params)
+
+        vol_map: dict[str, dict[str, int]] = {}
+        for _, r in vol_df.iterrows():
+            ds = str(r["churn_date"])
+            if ds not in vol_map:
+                vol_map[ds] = {"voluntary": 0, "involuntary": 0}
+            if r["churn_type"] == "terminated":
+                vol_map[ds]["voluntary"] = int(r["cnt"])
+            elif r["churn_type"] == "expired":
+                vol_map[ds]["involuntary"] = int(r["cnt"])
+
+        # Aggregate by date for daily breakdown
+        day_agg = (
+            churn_df.groupby("churn_date")
+            .agg(denominator=("denominator", "sum"),
+                 retained=("retained", "sum"),
+                 churned=("churned", "sum"))
+            .reset_index()
+        )
+
+        days: list[DailyRechargeChurn] = []
+        total_vol = 0
+        total_inv = 0
+        for _, r in day_agg.iterrows():
+            ds = str(r["churn_date"])
+            d = int(r["denominator"])
+            ret = int(r["retained"])
+            ch = int(r["churned"])
+            rate = ch / d if d > 0 else 0.0
+            v = vol_map.get(ds, {}).get("voluntary", 0)
+            i = vol_map.get(ds, {}).get("involuntary", 0)
+            total_vol += v
+            total_inv += i
+            days.append(DailyRechargeChurn(
+                date=ds, denominator=d, retained=ret, churned=ch,
+                churn_rate=round(rate, 6), voluntary=v, involuntary=i,
+            ))
+
+        # By-location churn rates
+        loc_agg = (
+            churn_df.groupby("location_name")
+            .agg(denominator=("denominator", "sum"),
+                 churned=("churned", "sum"))
+        )
+        by_loc = []
+        for loc, r in loc_agg.iterrows():
+            d = int(r["denominator"])
+            rate = int(r["churned"]) / d if d > 0 else 0.0
+            by_loc.append(LocationMetric(
+                location_name=loc, value=round(rate, 6),
+            ))
+
+        total_denom = int(churn_df["denominator"].sum()) if not churn_df.empty else 0
+        total_retained = int(churn_df["retained"].sum()) if not churn_df.empty else 0
+        total_churned = int(churn_df["churned"].sum()) if not churn_df.empty else 0
+        cum_rate = total_churned / total_denom if total_denom > 0 else 0.0
+
+        return RechargeChurnResult(
+            total_denominator=total_denom,
+            total_retained=total_retained,
+            total_churned=total_churned,
+            cumulative_churn_rate=round(cum_rate, 6),
+            total_voluntary=total_vol,
+            total_involuntary=total_inv,
+            days=days,
+            by_location=by_loc,
             period_start=str(start),
             period_end=str(end),
         )

@@ -169,6 +169,33 @@ class ActiveMemberResult(RinsedModel):
     period_end: str
 
 
+class DailyRechargeChurn(RinsedModel):
+    """Single day's churn from the recharge methodology."""
+
+    date: str
+    denominator: int
+    retained: int
+    churned: int
+    churn_rate: float
+    voluntary: int = 0
+    involuntary: int = 0
+
+
+class RechargeChurnResult(RinsedModel):
+    """Recharge-based churn over a date range (WashU methodology)."""
+
+    total_denominator: int
+    total_retained: int
+    total_churned: int
+    cumulative_churn_rate: float
+    total_voluntary: int
+    total_involuntary: int
+    days: list[DailyRechargeChurn]
+    by_location: list[LocationMetric]
+    period_start: str
+    period_end: str
+
+
 class DailyKPIResult(RinsedModel):
     """Batch daily KPI result across all locations and dates."""
 

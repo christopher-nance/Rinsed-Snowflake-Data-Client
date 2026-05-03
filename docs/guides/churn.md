@@ -194,3 +194,132 @@ Wheaton is not present in all churn validation data due to its later onboarding.
 ### Small Locations
 
 Locations with very few members (e.g., Jackson with ~290) can show volatile churn rates. A single cancellation has an outsized impact on the percentage. Consider this when comparing locations of different sizes.
+
+---
+
+## Recharge Churn (WashU Daily Methodology)
+
+`recharge_churn()` provides **daily churn measurement** based on WashU's recharge methodology. Unlike the monthly methods above, this gives you a churn number for every day in a date range.
+
+### How It Works
+
+For each day D in the requested range:
+
+1. **Denominator** = count of (recharges + new members) on the **same calendar day one month prior**
+2. **Retained** = count of recharges-only on day D (new members excluded)
+3. **Churned** = denominator - retained
+4. **Churn rate** = churned / denominator
+
+```
+Jan 15: 1,200 recharges + 80 new = 1,280 denominator
+Feb 15: 1,190 recharges (retained)
+         → Churned: 1,280 - 1,190 = 90
+         → Churn rate: 90 / 1,280 = 7.03%
+```
+
+The **cumulative churn rate** across a period is:
+
+```
+cumulative = sum(churned across all days) / sum(denominators across all days)
+```
+
+### Stripe-Style Anniversary Billing
+
+Date matching uses Snowflake's `DATEADD(MONTH, 1, ...)`, which follows Stripe's anniversary billing convention:
+
+- The billing date **clamps to end-of-month** in short months
+- The **original day returns** in longer months
+
+| Prior Month Date | Expected Recharge Date | Why |
+|---|---|---|
+| Jan 15 | Feb 15 | Same day, both months have it |
+| Jan 31 | Feb 28 | Feb has no 31st — clamp to last day |
+| Feb 28 | Mar 28 | Same day (but see note below) |
+| Mar 31 | Apr 30 | Apr has no 31st — clamp to last day |
+| Apr 30 | May 30 | Same day |
+
+!!! info "End-of-month edge case (days 29-31)"
+    Members whose anchor billing day is 29, 30, or 31 get clamped to the last day of short months (e.g., Jan 31 → Feb 28). When moving from a short month to a long month, `DATEADD` maps Feb 28 → Mar 28, even though Stripe would return the member to Mar 31. At the aggregate level without member-level ID tracking, we cannot distinguish "genuine 28th billers" from "clamped 31st billers" in February's data.
+
+    **Impact:** Daily rates on the 28th of months following February may be slightly distorted. March 29-31 may show recharges with no matching denominator. **Monthly aggregates are unaffected** — the same total number of prior-month transactions map to the same total number of current-month recharges.
+
+### Basic Usage
+
+```python
+result = client.stats.recharge_churn("2026-03-01", "2026-03-31")
+print(f"Denominator: {result.total_denominator:,}")       # 51,318
+print(f"Retained:    {result.total_retained:,}")           # 47,593
+print(f"Churned:     {result.total_churned:,}")            # 3,725
+print(f"Churn rate:  {result.cumulative_churn_rate:.2%}")  # 7.26%
+```
+
+### Daily Breakdown
+
+Each day includes the denominator, retained, churned, rate, and voluntary/involuntary counts:
+
+```python
+result = client.stats.recharge_churn("2026-03-01", "2026-03-31")
+
+for day in result.days[:5]:
+    print(f"{day.date}: denom={day.denominator:,} ret={day.retained:,} "
+          f"ch={day.churned:,} rate={day.churn_rate:.2%} "
+          f"vol={day.voluntary} inv={day.involuntary}")
+# 2026-03-01: denom=2,033 ret=1,891 ch=142 rate=6.98% vol=165 inv=24
+# 2026-03-02: denom=1,925 ret=1,812 ch=113 rate=5.87% vol=165 inv=24
+# ...
+```
+
+### Voluntary / Involuntary Overlay
+
+The `voluntary` and `involuntary` fields on each day come from `MEMBER_HISTORY` grouped by `churn_date` (the date the cancellation or expiry event was recorded in Rinsed).
+
+!!! warning "Different date definitions"
+    The recharge methodology's `churned` count is based on the **missed billing date** (the day the member was expected to recharge but didn't). The `voluntary`/`involuntary` counts are based on the **cancellation event date** from `MEMBER_HISTORY`.
+
+    These are different dates for the same event: a member who cancels on Feb 20 shows as `voluntary` on Feb 20, but shows as `churned` on Mar 15 (when their expected recharge doesn't happen).
+
+    On any given day, `voluntary + involuntary` will NOT equal `churned`. Over a full month, the totals are generally close but not identical.
+
+### Per-Location Churn Rates
+
+```python
+result = client.stats.recharge_churn("2026-03-01", "2026-03-31")
+
+ranked = sorted(result.by_location, key=lambda x: x.value, reverse=True)
+for loc in ranked[:5]:
+    print(f"{loc.location_name}: {loc.value:.2%}")
+```
+
+### Flexible Date Ranges
+
+Unlike the monthly churn methods, `recharge_churn()` works with any date range:
+
+```python
+# Single day
+result = client.stats.recharge_churn("2026-03-15", "2026-03-15")
+
+# One week
+result = client.stats.recharge_churn("2026-03-01", "2026-03-07")
+
+# Full quarter
+result = client.stats.recharge_churn("2026-01-01", "2026-03-31")
+```
+
+### Negative Churned Values
+
+In months where the business is growing rapidly, `churned` can be negative — meaning more members recharged than the prior month's pool. This is net growth exceeding churn and is a healthy signal.
+
+```python
+result = client.stats.recharge_churn("2025-05-01", "2025-05-31")
+print(result.total_churned)  # -46 (negative = net growth exceeded churn)
+```
+
+### Denominator Difference vs Rinsed/MAOM
+
+The recharge method's denominator (prior month recharges + new members) differs from the Rinsed dashboard/MAOM denominator (active member count). These are intentionally different measures:
+
+| | Recharge Method | Rinsed / MAOM |
+|---|---|---|
+| **Denominator** | Prior month billing transactions | Active member count |
+| **Granularity** | Daily | Monthly |
+| **Best for** | Day-level churn tracking, cohort analysis | Monthly reporting, frontend tie-outs |
