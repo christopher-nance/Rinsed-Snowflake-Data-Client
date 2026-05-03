@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.5.0 — 2026-05-03
+
+### Changed
+- **Breaking**: `member_car_count` now sourced from `FCT_REDEMPTIONS` + NM&R/RM&R combos from `FCT_REVENUE` (was `FCT_WASHES` with `transaction_category = 'redemption'`). Includes combo wash events that were previously not counted.
+- All queries now filter `location_name IS NOT NULL` to match the v4b source-of-truth query.
+
+### Added
+- `client.stats.active_member_count(start, end, locations?)` — active member roster count at end of period, sourced from `ACTIVE_MEMBERS_RINSED`. Matches Rinsed frontend "Active Members Over Time" exactly (46,708 on 2026-03-31).
+- New type: `ActiveMemberResult` with `total`, `snapshot_date`, and `by_location` fields.
+
+### Validated
+- All 6 metrics (RETAIL_WASH, MEMBER_WASH, RETAIL_REVENUE, MEMBER_REVENUE, MEMBER_COUNT_NEW, MEMBER_REVENUE_NEW) match the v4b source-of-truth query 1:1 across 1,350 day x location rows (Jan 1 – Mar 31, 2026). Zero diffs.
+- TOTAL_WASHES (CONVERSION_DAILY vs v4b assembled) differs by 38 washes (0.005%) due to different data sources — acceptable.
+- Active member count matches Rinsed frontend to the row.
+
 ## 0.4.2 — 2026-03-30
 
 ### Changed

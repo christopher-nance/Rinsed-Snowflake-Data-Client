@@ -49,7 +49,10 @@ print(f"Retail washes: {result.total:,}")  # 97,865
 
 ### Member Car Count
 
-Counts membership redemptions — washes where a member scanned their unlimited pass. Sourced from `FCT_WASHES` where `transaction_category = 'redemption'`.
+Counts member washes from two sources:
+
+- **FCT_REDEMPTIONS** — pure redemptions (member scanned their unlimited pass)
+- **FCT_REVENUE** — NM&R / RM&R combo washes (wash component of a new/renewed membership + wash transaction)
 
 ```python
 result = client.stats.member_car_count("2026-02-01", "2026-02-28")
@@ -65,13 +68,11 @@ total = client.stats.total_car_count("2026-02-01", "2026-02-28")
 retail = client.stats.retail_car_count("2026-02-01", "2026-02-28")
 member = client.stats.member_car_count("2026-02-01", "2026-02-28")
 
-# Free washes = total - retail - member - NM&R/RM&R combos
-# For an approximation:
 free_approx = total.total - retail.total - member.total
 ```
 
 !!! note
-    This approximation includes NM&R/RM&R combo washes in the "free" bucket. These combo washes are counted in `total_car_count` but not in `retail_car_count` or `member_car_count`. For exact free wash counts, use `client.query()` against `FCT_WASHES` directly.
+    This approximation may include small rounding differences because `total_car_count` is sourced from the pre-aggregated `CONVERSION_DAILY` table while `retail_car_count` and `member_car_count` are assembled from individual fact tables. For exact free wash counts, use `client.query()` against `FCT_REVENUE` with `transaction_category = 'Free Wash'`.
 
 ### Use Case — Member Mix Ratio
 
@@ -199,6 +200,34 @@ result = client.stats.new_membership_sales("2026-02-01", "2026-02-28")
 rev_per_member = result.total_revenue / result.total if result.total > 0 else 0
 print(f"Average first-month revenue per new member: ${rev_per_member:.2f}")
 ```
+
+---
+
+## Active Member Count
+
+Returns the active member roster count — the number of members with an active unlimited membership on a given date. This is a **stock measure** (point-in-time snapshot), not a flow.
+
+Sourced from `ACTIVE_MEMBERS_RINSED` — the same member-level daily snapshot used by the Rinsed frontend "Active Members Over Time" page. Matches the frontend figure exactly (46,708 on March 31, 2026).
+
+```python
+result = client.stats.active_member_count("2026-03-01", "2026-03-31")
+print(f"Active members: {result.total:,}")         # 46,708
+print(f"Snapshot date: {result.snapshot_date}")     # 2026-03-31
+```
+
+The method uses the **last available date** in the given range as the snapshot date. Per-location breakdown:
+
+```python
+for loc in sorted(result.by_location, key=lambda x: x.value, reverse=True):
+    print(f"{loc.location_name}: {loc.value:,.0f}")
+# Burbank: 6,316
+# Plainfield: 5,539
+# Dickson: 4,892
+# ...
+```
+
+!!! warning "Stock measure — do not sum across dates"
+    Active member count is a daily snapshot. Summing it across days produces "member-days", not a member count. For period summaries, use the end-of-period snapshot (pass the last day of the month/quarter as `end`).
 
 ---
 
@@ -348,7 +377,7 @@ for row in result.rows[:3]:
 |-------|------|-------------|
 | `total_car_count` | int | CONVERSION_DAILY |
 | `retail_car_count` | int | FCT_REVENUE |
-| `member_car_count` | int | FCT_WASHES |
+| `member_car_count` | int | FCT_REDEMPTIONS + FCT_REVENUE (NM&R/RM&R) |
 | `retail_revenue` | float | FCT_REVENUE |
 | `retail_transaction_count` | int | FCT_REVENUE |
 | `membership_revenue` | float | FCT_MEMBERSHIPS |
@@ -535,7 +564,7 @@ for day in result.days:
 
 When a customer buys or renews a membership and gets a wash in the same transaction:
 
-- The **wash** counts as a member wash (in `member_car_count` via `FCT_WASHES`)
+- The **wash** counts as a member wash (in `member_car_count` via `FCT_REVENUE` NM&R/RM&R entries)
 - The **revenue** goes to membership revenue (in `membership_revenue` via `FCT_MEMBERSHIPS`)
 - It does **not** appear in `retail_car_count` or `retail_revenue`
 

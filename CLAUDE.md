@@ -40,7 +40,7 @@ Follow semver:
 
 ## Business Logic Notes
 
-- **NM&R / RM&R** combo transactions are membership washes, NOT retail
+- **NM&R / RM&R** combo transactions: the wash counts as a member wash (in `member_car_count` via FCT_REVENUE), the revenue goes to membership revenue (via FCT_MEMBERSHIPS). NOT counted as retail washes or retail revenue.
 - **Churn** uses WashU's billing-cycle definition (shifted one month forward from Rinsed)
 - **Active member denominator** for churn comes from the PREVIOUS month's `ACTIVE_MEMBERS_MONTHLY`
 - **Hub Office** and **Query Server** are always excluded from all queries

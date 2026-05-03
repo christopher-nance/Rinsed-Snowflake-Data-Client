@@ -4,6 +4,7 @@ from rinsed_snowflake_client.types._base import RinsedModel
 from rinsed_snowflake_client.types._sites import Site
 from rinsed_snowflake_client.types._stats import (
     AWPResult,
+    ActiveMemberResult,
     CarCountResult,
     ChurnResult,
     ConversionResult,
@@ -21,6 +22,7 @@ from rinsed_snowflake_client.types._stats import (
 
 __all__ = [
     "AWPResult",
+    "ActiveMemberResult",
     "CarCountResult",
     "ChurnResult",
     "ConversionResult",

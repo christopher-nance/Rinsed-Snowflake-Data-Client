@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from rinsed_snowflake_client._filters import DateInput, Locations
 from rinsed_snowflake_client._query_builder import (
+    active_member_count_sql,
     active_members_at_start_sql,
     batch_cancellations_sql,
     batch_conversion_daily_sql,
@@ -26,6 +27,7 @@ from rinsed_snowflake_client._query_builder import (
 )
 from rinsed_snowflake_client.types._stats import (
     AWPResult,
+    ActiveMemberResult,
     CarCountResult,
     ChurnResult,
     ConversionResult,
@@ -96,6 +98,36 @@ class StatsResource:
         by_loc = [LocationMetric(location_name=r["location_name"], value=int(r["value"])) for _, r in df.iterrows()]
         total = int(df["value"].sum()) if not df.empty else 0
         return CarCountResult(total=total, by_location=by_loc, period_start=str(start), period_end=str(end))
+
+    # ------------------------------------------------------------------
+    # Active member count
+    # ------------------------------------------------------------------
+
+    def active_member_count(
+        self,
+        start: DateInput,
+        end: DateInput,
+        locations: Locations = None,
+    ) -> ActiveMemberResult:
+        """Active member roster count at end of period.
+
+        Returns the number of active members on the last available date
+        within the given range. This is a stock measure (point-in-time
+        snapshot) — do not sum across dates.
+
+        Sourced from ACTIVE_MEMBERS_RINSED with location mapping from
+        FCT_REVENUE. Matches the Rinsed frontend "Active Members Over
+        Time" figure.
+        """
+        sql, params = active_member_count_sql(start, end, locations)
+        df = self._client._execute(sql, params)
+        by_loc = [LocationMetric(location_name=r["location_name"], value=int(r["member_count"])) for _, r in df.iterrows()]
+        total = int(df["member_count"].sum()) if not df.empty else 0
+        snapshot = str(df["snapshot_date"].iloc[0]) if not df.empty else str(end)
+        return ActiveMemberResult(
+            total=total, snapshot_date=snapshot,
+            by_location=by_loc, period_start=str(start), period_end=str(end),
+        )
 
     # ------------------------------------------------------------------
     # Revenue

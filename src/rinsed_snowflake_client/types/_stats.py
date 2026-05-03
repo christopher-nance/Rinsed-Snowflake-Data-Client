@@ -159,6 +159,16 @@ class DailyKPIRow(RinsedModel):
     active_members: int = 0
 
 
+class ActiveMemberResult(RinsedModel):
+    """Active member count snapshot (point-in-time stock measure)."""
+
+    total: int
+    snapshot_date: str
+    by_location: list[LocationMetric]
+    period_start: str
+    period_end: str
+
+
 class DailyKPIResult(RinsedModel):
     """Batch daily KPI result across all locations and dates."""
 

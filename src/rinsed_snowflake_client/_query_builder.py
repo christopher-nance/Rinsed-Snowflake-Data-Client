@@ -41,6 +41,8 @@ def _apply_filters(
     Args:
         cast_date: If True, wraps the date_column in DATE() for timestamp columns.
     """
+    sql += f" AND {location_column} IS NOT NULL"
+
     # Exclude Hub Office / Query Server
     sql += _add_exclusions(sql, params, location_column)
 
@@ -105,11 +107,21 @@ def retail_car_count_sql(
 def member_car_count_sql(
     start: DateInput | None, end: DateInput | None, locations: Locations
 ) -> tuple[str, list]:
-    """Membership redemption count from FCT_WASHES."""
+    """Member wash count: FCT_REDEMPTIONS + NM&R/RM&R combos from FCT_REVENUE."""
     sql = """
         SELECT location_name, COUNT(*) as value
-        FROM fct_washes
-        WHERE transaction_category = 'redemption'
+        FROM (
+            SELECT location_name, created_at
+            FROM fct_redemptions
+            UNION ALL
+            SELECT location_name, created_at
+            FROM fct_revenue
+            WHERE transaction_category IN (
+                'New Membership & Redemption',
+                'Renewed Membership & Redemption'
+            )
+        ) member_washes
+        WHERE 1=1
     """.strip()
     params: list = []
     sql = _apply_filters(sql, params, "created_at", start, end, locations, cast_date=True)
@@ -368,14 +380,24 @@ def batch_fct_revenue_sql(
 def batch_fct_washes_sql(
     start: DateInput | None, end: DateInput | None, locations: Locations
 ) -> tuple[str, list]:
-    """Daily member car count from FCT_WASHES."""
+    """Daily member wash count: FCT_REDEMPTIONS + NM&R/RM&R combos."""
     sql = """
         SELECT
             DATE(created_at) AS kpi_date,
             location_name,
             COUNT(*) AS member_car_count
-        FROM fct_washes
-        WHERE transaction_category = 'redemption'
+        FROM (
+            SELECT location_name, created_at
+            FROM fct_redemptions
+            UNION ALL
+            SELECT location_name, created_at
+            FROM fct_revenue
+            WHERE transaction_category IN (
+                'New Membership & Redemption',
+                'Renewed Membership & Redemption'
+            )
+        ) member_washes
+        WHERE 1=1
     """.strip()
     params: list = []
     sql = _apply_filters(sql, params, "created_at", start, end, locations, cast_date=True)
@@ -474,4 +496,63 @@ def daily_cancellations_by_location_sql(
     params: list = []
     sql = _apply_filters(sql, params, "churn_date", start, end, locations)
     sql += " GROUP BY location_name ORDER BY location_name"
+    return (sql, params)
+
+
+# ---------------------------------------------------------------------------
+# Active member count
+# ---------------------------------------------------------------------------
+
+
+def active_member_count_sql(
+    start: DateInput | None, end: DateInput | None, locations: Locations
+) -> tuple[str, list]:
+    """Active member roster count from ACTIVE_MEMBERS_RINSED.
+
+    Returns counts for the last available date in the given range.
+    Uses the same location_map approach as the V4b source-of-truth query.
+    """
+    normalized_start = normalize_date(start)
+    normalized_end = normalize_date(end)
+
+    sql = """
+        WITH location_map AS (
+            SELECT location_id, location_name
+            FROM (
+                SELECT
+                    location_id,
+                    location_name,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY location_id
+                        ORDER BY created_at DESC
+                    ) AS rn
+                FROM fct_revenue
+                WHERE location_id IS NOT NULL
+                  AND location_name IS NOT NULL
+                  AND location_name NOT IN ('Hub Office', 'Query Server')
+            )
+            WHERE rn = 1
+        )
+        SELECT
+            a.dte AS snapshot_date,
+            lm.location_name,
+            COUNT(*) AS member_count
+        FROM active_members_rinsed a
+        INNER JOIN location_map lm ON lm.location_id = a.location_id
+        WHERE a.dte = (
+            SELECT MAX(dte) FROM active_members_rinsed
+            WHERE dte >= %s AND dte <= %s
+        )
+    """.strip()
+    params: list = [normalized_start, normalized_end]
+
+    normalized_locations = normalize_locations(locations)
+    if normalized_locations is not None:
+        loc_clause, loc_params = build_location_clause(
+            "lm.location_name", normalized_locations
+        )
+        sql += f" AND {loc_clause}"
+        params.extend(loc_params)
+
+    sql += " GROUP BY a.dte, lm.location_name ORDER BY lm.location_name"
     return (sql, params)
