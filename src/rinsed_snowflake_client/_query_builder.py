@@ -714,38 +714,73 @@ def cohort_retention_by_plan_sql(
 def cohort_members_sql(
     start: DateInput | None, end: DateInput | None, locations: Locations
 ) -> tuple[str, list]:
-    """One row per member in the cohort range, showing their latest state.
+    """One row per member in the cohort range with latest state and wash counts.
 
     Uses ROW_NUMBER to collapse the per-billing-period rows down to
-    the most recent period per member.
+    the most recent period per member, then LEFT JOINs wash activity
+    from FCT_REDEMPTIONS + NM&R/RM&R combos from FCT_REVENUE.
     """
     sql = """
-        SELECT
-            rinsed_membership_id,
-            location_name,
-            join_date,
-            join_plan_name,
-            cohort_month,
-            plan_name,
-            revenue,
-            period_month AS tenure_months,
-            churn_date,
-            churn_type,
-            churn_period
-        FROM (
-            SELECT *,
-                ROW_NUMBER() OVER (
-                    PARTITION BY rinsed_membership_id
-                    ORDER BY period_month DESC
-                ) AS rn
-            FROM member_history
-            WHERE rinsed_membership_id IS NOT NULL
+        WITH member_latest AS (
+            SELECT
+                rinsed_membership_id,
+                location_name,
+                join_date,
+                join_plan_name,
+                cohort_month,
+                plan_name,
+                revenue,
+                period_month AS tenure_months,
+                churn_date,
+                churn_type,
+                churn_period
+            FROM (
+                SELECT *,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY rinsed_membership_id
+                        ORDER BY period_month DESC
+                    ) AS rn
+                FROM member_history
+                WHERE rinsed_membership_id IS NOT NULL
     """.strip()
     params: list = []
     sql = _apply_filters(sql, params, "cohort_month", start, end, locations)
     sql += """
-        ) ranked
-        WHERE rn = 1
-        ORDER BY cohort_month, location_name, join_date
+            ) ranked
+            WHERE rn = 1
+        ),
+        all_washes AS (
+            SELECT rinsed_membership_id, created_at
+            FROM fct_redemptions
+            WHERE rinsed_membership_id IS NOT NULL
+            UNION ALL
+            SELECT rinsed_membership_id, created_at
+            FROM fct_revenue
+            WHERE transaction_category IN (
+                'New Membership & Redemption',
+                'Renewed Membership & Redemption'
+            )
+            AND rinsed_membership_id IS NOT NULL
+        ),
+        wash_stats AS (
+            SELECT
+                w.rinsed_membership_id,
+                COUNT(*) AS wash_count,
+                MAX(DATE(w.created_at)) AS last_wash_date,
+                MIN(DATE(w.created_at)) AS first_wash_date
+            FROM all_washes w
+            INNER JOIN member_latest m
+                ON w.rinsed_membership_id = m.rinsed_membership_id
+            GROUP BY w.rinsed_membership_id
+        )
+        SELECT
+            m.*,
+            COALESCE(ws.wash_count, 0) AS wash_count,
+            ws.last_wash_date,
+            ws.first_wash_date
+        FROM member_latest m
+        LEFT JOIN wash_stats ws
+            ON m.rinsed_membership_id = ws.rinsed_membership_id
+        ORDER BY m.cohort_month, m.location_name, m.join_date
     """
     return (sql.strip(), params)

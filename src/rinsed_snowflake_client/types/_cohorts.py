@@ -62,6 +62,10 @@ class CohortMemberRow(RinsedModel):
     churn_type: str | None
     churn_period: int | None
     status: str
+    wash_count: int
+    last_wash_date: str | None
+    first_wash_date: str | None
+    avg_washes_per_month: float
 
 
 class CohortMembersResult(RinsedModel):

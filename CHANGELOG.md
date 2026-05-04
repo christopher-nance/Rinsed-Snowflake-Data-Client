@@ -6,7 +6,7 @@
 - `client.cohorts` resource — cohort retention analysis powered by `MEMBER_HISTORY`.
 - `client.cohorts.retention_grid(start, end, locations?)` — pre-aggregated retention matrix: `cohort_month` x `period_month` with member counts, churned counts (voluntary/involuntary). Period 0 = signup month. Start/end filter by cohort month, not calendar date.
 - `client.cohorts.retention_by_plan(start, end, locations?)` — same retention grid sliced by `join_plan_name` (membership plan at time of signup) for plan-level cohort comparison.
-- `client.cohorts.members(start, end, locations?)` — member-level drill-down returning one row per member with latest state: current plan, tenure, revenue, churn status. Useful for inspecting individual members within a cohort, exporting member lists, and promo quality analysis.
+- `client.cohorts.members(start, end, locations?)` — member-level drill-down returning one row per member with latest state: current plan, tenure, revenue, churn status, and wash activity (`wash_count`, `last_wash_date`, `first_wash_date`, `avg_washes_per_month`). Wash counts sourced from `FCT_REDEMPTIONS` + NM&R/RM&R combos from `FCT_REVENUE`. Useful for usage frequency analysis, at-risk member identification, promo quality evaluation, and CSV exports.
 - New types: `CohortPeriodRow`, `CohortRetentionResult`, `CohortPlanPeriodRow`, `CohortRetentionByPlanResult`, `CohortMemberRow`, `CohortMembersResult`.
 - Cohort analysis guide in documentation with retention grid examples, plan-level slicing, member drill-down use cases, SQLite caching patterns, and data model explanation.
 

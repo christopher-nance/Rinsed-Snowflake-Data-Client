@@ -213,6 +213,57 @@ Each row contains:
 | `churn_type` | `'terminated'` (voluntary), `'expired'` (involuntary), or None |
 | `churn_period` | Tenure month when churn occurred (None if active) |
 | `status` | `'active'` or `'cancelled'` |
+| `wash_count` | Total lifetime washes (redemptions + NM&R/RM&R combos) |
+| `last_wash_date` | Date of most recent wash (None if never washed) |
+| `first_wash_date` | Date of first wash (None if never washed) |
+| `avg_washes_per_month` | `wash_count / tenure_months` |
+
+### Usage Frequency Analysis
+
+Identify high-value members vs. low-engagement members at risk of churning:
+
+```python
+result = client.cohorts.members("2025-01-01", "2025-01-31")
+
+active = [r for r in result.rows if r.status == "active"]
+avg_wash = sum(r.wash_count for r in active) / len(active)
+print(f"Active members: avg {avg_wash:.1f} lifetime washes")
+
+# High frequency (4+ washes/month)
+power_users = [r for r in active if r.avg_washes_per_month >= 4]
+print(f"Power users (4+/mo): {len(power_users)}")
+
+# At risk — active but haven't washed recently or low usage
+at_risk = [r for r in active
+           if r.avg_washes_per_month < 1.0 and r.tenure_months >= 3]
+print(f"At risk (< 1 wash/mo, 3+ months tenure): {len(at_risk)}")
+
+# Never washed
+zero_wash = [r for r in active if r.wash_count == 0]
+print(f"Never washed: {len(zero_wash)}")
+```
+
+### Wash Frequency by Plan
+
+Compare usage across plan tiers:
+
+```python
+from collections import defaultdict
+
+result = client.cohorts.members("2025-01-01", "2025-03-01")
+active = [r for r in result.rows if r.status == "active"]
+
+plans = defaultdict(list)
+for m in active:
+    plans[m.join_plan_name].append(m.avg_washes_per_month)
+
+print(f"{'Plan':<35} {'Members':>8} {'Avg Washes/Mo':>14}")
+print("-" * 60)
+for plan in sorted(plans, key=lambda p: len(plans[p]), reverse=True):
+    members = plans[plan]
+    avg = sum(members) / len(members)
+    print(f"{plan[:35]:<35} {len(members):>8} {avg:>13.1f}")
+```
 
 ### Inspecting Churned Members
 
@@ -308,13 +359,15 @@ with open("cohort_members.csv", "w", newline="") as f:
         "member_id", "location", "join_date", "join_plan",
         "cohort_month", "current_plan", "revenue", "tenure_months",
         "churn_date", "churn_type", "status",
+        "wash_count", "avg_washes_per_month", "last_wash_date",
     ])
     for r in result.rows:
         writer.writerow([
             r.rinsed_membership_id, r.location_name, r.join_date,
             r.join_plan_name, r.cohort_month, r.plan_name, r.revenue,
             r.tenure_months, r.churn_date or "", r.churn_type or "",
-            r.status,
+            r.status, r.wash_count, r.avg_washes_per_month,
+            r.last_wash_date or "",
         ])
 ```
 

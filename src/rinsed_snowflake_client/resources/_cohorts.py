@@ -137,8 +137,9 @@ class CohortResource:
         """Member-level drill-down for cohorts in the date range.
 
         Returns one row per member showing their latest state: current
-        plan, tenure, churn status, and revenue.  Use this to inspect
-        individual members within a cohort or export member lists.
+        plan, tenure, churn status, revenue, and wash activity.  Use
+        this to inspect individual members within a cohort or export
+        member lists.
 
         Args:
             start: Earliest cohort month to include.
@@ -157,6 +158,11 @@ class CohortResource:
             churn_period_val = r["churn_period"]
             churn_period = None if churn_period_val is None or (isinstance(churn_period_val, float) and math.isnan(churn_period_val)) else int(churn_period_val)
             status = "cancelled" if churn_date else "active"
+            wash_count = _safe_int(r["wash_count"])
+            tenure = _safe_int(r["tenure_months"])
+            avg_washes = round(wash_count / max(tenure, 1), 1)
+            last_wash = str(r["last_wash_date"]) if r["last_wash_date"] is not None else None
+            first_wash = str(r["first_wash_date"]) if r["first_wash_date"] is not None else None
 
             if status == "active":
                 active += 1
@@ -171,11 +177,15 @@ class CohortResource:
                 cohort_month=str(r["cohort_month"]),
                 plan_name=str(r["plan_name"]) if r["plan_name"] else "Unknown",
                 revenue=_safe_float(r["revenue"]),
-                tenure_months=_safe_int(r["tenure_months"]),
+                tenure_months=tenure,
                 churn_date=churn_date,
                 churn_type=churn_type,
                 churn_period=churn_period,
                 status=status,
+                wash_count=wash_count,
+                last_wash_date=last_wash,
+                first_wash_date=first_wash,
+                avg_washes_per_month=avg_washes,
             ))
 
         return CohortMembersResult(
