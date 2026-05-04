@@ -1,0 +1,1496 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Python client for WashU Carwash Rinsed CRM data in Snowflake">
+      
+      
+      
+        <link rel="canonical" href="https://christopher-nance.github.io/Rinsed-Snowflake-Data-Client/guides/cohorts/">
+      
+      
+        <link rel="prev" href="../stats/">
+      
+      
+        <link rel="next" href="../churn/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Cohort Retention - Rinsed Snowflake Data Client</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="light-blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cohort-retention-analysis" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Rinsed Snowflake Data Client" class="md-header__button md-logo" aria-label="Rinsed Snowflake Data Client" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Rinsed Snowflake Data Client
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Cohort Retention
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/christopher-nance/Rinsed-Snowflake-Data-Client" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    christopher-nance/Rinsed-Snowflake-Data-Client
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Rinsed Snowflake Data Client" class="md-nav__button md-logo" aria-label="Rinsed Snowflake Data Client" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Rinsed Snowflake Data Client
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/christopher-nance/Rinsed-Snowflake-Data-Client" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    christopher-nance/Rinsed-Snowflake-Data-Client
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sites/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sites
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stats & KPIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cohort Retention
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cohort Retention
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#retention-grid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Retention Grid
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Retention Grid">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reading-the-grid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading the Grid
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computing-retention-rate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Computing Retention Rate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#building-a-retention-heatmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building a Retention Heatmap
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#retention-by-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Retention by Plan
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Retention by Plan">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#plan-level-retention-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plan-Level Retention Comparison
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#promo-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Promo Analysis
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#location-filtering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Location Filtering
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-member_history-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How MEMBER_HISTORY Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rejoins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rejoins
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#churned-vs-members-delta" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Churned vs. Members Delta
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sqlite-caching-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SQLite Caching Pattern
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SQLite Caching Pattern">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#json-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JSON Export
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../churn/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Churn Rates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../raw-queries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Raw Queries
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../error-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Handling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Client
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/exceptions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exceptions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#retention-grid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Retention Grid
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Retention Grid">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reading-the-grid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading the Grid
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computing-retention-rate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Computing Retention Rate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#building-a-retention-heatmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building a Retention Heatmap
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#retention-by-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Retention by Plan
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Retention by Plan">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#plan-level-retention-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plan-Level Retention Comparison
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#promo-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Promo Analysis
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#location-filtering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Location Filtering
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-member_history-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How MEMBER_HISTORY Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rejoins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rejoins
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#churned-vs-members-delta" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Churned vs. Members Delta
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sqlite-caching-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SQLite Caching Pattern
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SQLite Caching Pattern">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#json-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JSON Export
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="cohort-retention-analysis">Cohort Retention Analysis<a class="headerlink" href="#cohort-retention-analysis" title="Permanent link">&para;</a></h1>
+<p>Cohort methods are accessed via <code>client.cohorts</code> and return pre-aggregated retention data from <code>MEMBER_HISTORY</code>. The data shape is designed for retention grids, survival curves, and plan-level comparisons.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">client</span><span class="o">.</span><span class="n">cohorts</span><span class="o">.</span><span class="n">retention_grid</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">locations</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">client</span><span class="o">.</span><span class="n">cohorts</span><span class="o">.</span><span class="n">retention_by_plan</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">locations</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</code></pre></div>
+<div class="admonition info">
+<p class="admonition-title">Start/end filter by cohort month</p>
+<p>Unlike other methods where <code>start</code>/<code>end</code> filter by transaction date, cohort methods filter by <strong>cohort month</strong> — when the member signed up. <code>retention_grid("2024-06-01", "2024-12-01")</code> returns all cohorts from June–December 2024 with their full retention history through today.</p>
+</div>
+<hr />
+<h2 id="retention-grid">Retention Grid<a class="headerlink" href="#retention-grid" title="Permanent link">&para;</a></h2>
+<p>The core method. Returns one row per cohort per tenure period — the exact shape needed for a retention heatmap.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">cohorts</span><span class="o">.</span><span class="n">retention_grid</span><span class="p">(</span><span class="s2">&quot;2025-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2025-03-01&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cohorts: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">cohort_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>   <span class="c1"># 3</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Max tenure: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">max_period</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># 16 months</span>
+</code></pre></div>
+<p>Each row contains:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cohort_month</code></td>
+<td>Signup month (first of month)</td>
+</tr>
+<tr>
+<td><code>period_month</code></td>
+<td>Tenure period (0 = signup month, 1 = first renewal, ...)</td>
+</tr>
+<tr>
+<td><code>members</code></td>
+<td>Members still billing at this period</td>
+</tr>
+<tr>
+<td><code>churned</code></td>
+<td>Members who churned during this period</td>
+</tr>
+<tr>
+<td><code>voluntary_churned</code></td>
+<td>Member-initiated cancellations</td>
+</tr>
+<tr>
+<td><code>involuntary_churned</code></td>
+<td>Payment failures</td>
+</tr>
+</tbody>
+</table>
+<h3 id="reading-the-grid">Reading the Grid<a class="headerlink" href="#reading-the-grid" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">cohorts</span><span class="o">.</span><span class="n">retention_grid</span><span class="p">(</span><span class="s2">&quot;2025-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2025-01-31&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">rows</span><span class="p">[:</span><span class="mi">6</span><span class="p">]:</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Period </span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">period_month</span><span class="si">:</span><span class="s2">2d</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">members</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> members, &quot;</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>          <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">churned</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> churned &quot;</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>          <span class="sa">f</span><span class="s2">&quot;(vol=</span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">voluntary_churned</span><span class="si">}</span><span class="s2">, inv=</span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">involuntary_churned</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># Period  0: 3,265 members, 67 churned (vol=67, inv=0)</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="c1"># Period  1: 3,052 members, 339 churned (vol=326, inv=13)</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="c1"># Period  2: 2,749 members, 341 churned (vol=263, inv=78)</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="c1"># Period  3: 2,368 members, 256 churned (vol=197, inv=59)</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="c1"># Period  4: 2,035 members, 160 churned (vol=127, inv=33)</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="c1"># Period  5: 1,865 members, 120 churned (vol=86, inv=34)</span>
+</code></pre></div>
+<p><strong>Period 0</strong> is the signup month — the initial cohort size. Each subsequent period shows how many members remain and how many left.</p>
+<h3 id="computing-retention-rate">Computing Retention Rate<a class="headerlink" href="#computing-retention-rate" title="Permanent link">&para;</a></h3>
+<p>Retention rate is left to the consumer. Divide any period's member count by the period 0 count:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">cohorts</span><span class="o">.</span><span class="n">retention_grid</span><span class="p">(</span><span class="s2">&quot;2025-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2025-01-31&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># Find period 0 (initial size)</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">initial</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">rows</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">period_month</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">rows</span><span class="p">:</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="n">retention</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">members</span> <span class="o">/</span> <span class="n">initial</span><span class="o">.</span><span class="n">members</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Period </span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">period_month</span><span class="si">:</span><span class="s2">2d</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">retention</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="c1"># Period  0: 100.0%</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1"># Period  1: 93.5%</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="c1"># Period  2: 84.2%</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="c1"># Period  3: 72.5%</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="c1"># ...</span>
+</code></pre></div>
+<h3 id="building-a-retention-heatmap">Building a Retention Heatmap<a class="headerlink" href="#building-a-retention-heatmap" title="Permanent link">&para;</a></h3>
+<p>For multiple cohorts, group by <code>cohort_month</code> and compute retention within each group:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">cohorts</span><span class="o">.</span><span class="n">retention_grid</span><span class="p">(</span><span class="s2">&quot;2024-06-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2025-01-01&quot;</span><span class="p">)</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1"># Group by cohort</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="n">cohorts</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">rows</span><span class="p">:</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    <span class="n">cohorts</span><span class="p">[</span><span class="n">row</span><span class="o">.</span><span class="n">cohort_month</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1"># Build retention table</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;Cohort&#39;</span><span class="si">:</span><span class="s2">&lt;12</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;M0&#39;</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;M1&#39;</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;M2&#39;</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;M3&#39;</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;M6&#39;</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;M12&#39;</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="k">for</span> <span class="n">month</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">cohorts</span><span class="p">):</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>    <span class="n">periods</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span><span class="o">.</span><span class="n">period_month</span><span class="p">:</span> <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">cohorts</span><span class="p">[</span><span class="n">month</span><span class="p">]}</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>    <span class="n">initial</span> <span class="o">=</span> <span class="n">periods</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">members</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>    <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">month</span><span class="p">[:</span><span class="mi">7</span><span class="p">]]</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">12</span><span class="p">]:</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>        <span class="k">if</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">periods</span><span class="p">:</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>            <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">periods</span><span class="p">[</span><span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">members</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">initial</span><span class="si">:</span><span class="s2">.0%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>        <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>            <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;—&quot;</span><span class="p">)</span>
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cols</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;12</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cols</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cols</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cols</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cols</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cols</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cols</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="retention-by-plan">Retention by Plan<a class="headerlink" href="#retention-by-plan" title="Permanent link">&para;</a></h2>
+<p>Adds the <code>join_plan_name</code> dimension — the membership plan at the time of signup. Use this to compare retention across plan tiers or evaluate promo-driven plans.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">cohorts</span><span class="o">.</span><span class="n">retention_by_plan</span><span class="p">(</span><span class="s2">&quot;2025-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2025-01-31&quot;</span><span class="p">,</span> <span class="s2">&quot;Burbank&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Plans: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">plan_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># 7</span>
+</code></pre></div>
+<p>Each row includes everything from the base grid plus <code>join_plan_name</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">rows</span><span class="p">:</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>    <span class="k">if</span> <span class="n">row</span><span class="o">.</span><span class="n">period_month</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">join_plan_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">members</span><span class="si">}</span><span class="s2"> members&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># New Monthly Express: 123 members</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="c1"># Monthly Clean &#39;21: 60 members</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="c1"># New Monthly Protect: 55 members</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1"># Monthly UShine: 40 members</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="c1"># ...</span>
+</code></pre></div>
+<h3 id="plan-level-retention-comparison">Plan-Level Retention Comparison<a class="headerlink" href="#plan-level-retention-comparison" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">cohorts</span><span class="o">.</span><span class="n">retention_by_plan</span><span class="p">(</span><span class="s2">&quot;2025-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2025-01-31&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="c1"># Group by plan</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="n">plans</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">rows</span><span class="p">:</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    <span class="n">plans</span><span class="p">[</span><span class="n">row</span><span class="o">.</span><span class="n">join_plan_name</span><span class="p">][</span><span class="n">row</span><span class="o">.</span><span class="n">period_month</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;Plan&#39;</span><span class="si">:</span><span class="s2">&lt;35</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;Size&#39;</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;M3&#39;</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;M6&#39;</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;M12&#39;</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="k">for</span> <span class="n">plan</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">plans</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">plans</span><span class="p">[</span><span class="n">p</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">members</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>    <span class="n">periods</span> <span class="o">=</span> <span class="n">plans</span><span class="p">[</span><span class="n">plan</span><span class="p">]</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>    <span class="n">initial</span> <span class="o">=</span> <span class="n">periods</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">members</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>    <span class="n">m3</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">periods</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">members</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">initial</span><span class="si">:</span><span class="s2">.0%</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="mi">3</span> <span class="ow">in</span> <span class="n">periods</span> <span class="k">else</span> <span class="s2">&quot;—&quot;</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>    <span class="n">m6</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">periods</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">members</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">initial</span><span class="si">:</span><span class="s2">.0%</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="mi">6</span> <span class="ow">in</span> <span class="n">periods</span> <span class="k">else</span> <span class="s2">&quot;—&quot;</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>    <span class="n">m12</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">periods</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span><span class="o">.</span><span class="n">members</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">initial</span><span class="si">:</span><span class="s2">.0%</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="mi">12</span> <span class="ow">in</span> <span class="n">periods</span> <span class="k">else</span> <span class="s2">&quot;—&quot;</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">plan</span><span class="p">[:</span><span class="mi">35</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;35</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">initial</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">m3</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">m6</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">m12</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="promo-analysis">Promo Analysis<a class="headerlink" href="#promo-analysis" title="Permanent link">&para;</a></h3>
+<p>Filter a specific cohort month to evaluate a promotion's member quality:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># March 2025 had a $9.95 promo — how did those members retain?</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">cohorts</span><span class="o">.</span><span class="n">retention_by_plan</span><span class="p">(</span><span class="s2">&quot;2025-03-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2025-03-31&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="n">promo_plans</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">rows</span> <span class="k">if</span> <span class="s2">&quot;9.95&quot;</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">join_plan_name</span><span class="p">]</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="n">regular_plans</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">rows</span> <span class="k">if</span> <span class="s2">&quot;9.95&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">join_plan_name</span><span class="p">]</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="c1"># Compare 6-month retention</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="k">for</span> <span class="n">group</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="p">[(</span><span class="n">promo_plans</span><span class="p">,</span> <span class="s2">&quot;Promo&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">regular_plans</span><span class="p">,</span> <span class="s2">&quot;Regular&quot;</span><span class="p">)]:</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>    <span class="n">periods</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span><span class="o">.</span><span class="n">period_month</span><span class="p">:</span> <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">group</span><span class="p">}</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>    <span class="k">if</span> <span class="mi">0</span> <span class="ow">in</span> <span class="n">periods</span> <span class="ow">and</span> <span class="mi">6</span> <span class="ow">in</span> <span class="n">periods</span><span class="p">:</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>        <span class="n">ret</span> <span class="o">=</span> <span class="n">periods</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">members</span> <span class="o">/</span> <span class="n">periods</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">members</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ret</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2"> retention at 6 months (</span><span class="si">{</span><span class="n">periods</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">members</span><span class="si">}</span><span class="s2"> initial)&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="location-filtering">Location Filtering<a class="headerlink" href="#location-filtering" title="Permanent link">&para;</a></h2>
+<p>Both methods accept the standard <code>locations</code> parameter:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Single location</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">cohorts</span><span class="o">.</span><span class="n">retention_grid</span><span class="p">(</span><span class="s2">&quot;2025-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2025-06-01&quot;</span><span class="p">,</span> <span class="s2">&quot;Burbank&quot;</span><span class="p">)</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># Multiple locations</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">cohorts</span><span class="o">.</span><span class="n">retention_grid</span><span class="p">(</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>    <span class="s2">&quot;2025-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2025-06-01&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>    <span class="n">locations</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Burbank&quot;</span><span class="p">,</span> <span class="s2">&quot;Plainfield&quot;</span><span class="p">,</span> <span class="s2">&quot;Dickson&quot;</span><span class="p">],</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="data-model">Data Model<a class="headerlink" href="#data-model" title="Permanent link">&para;</a></h2>
+<h3 id="how-member_history-works">How MEMBER_HISTORY Works<a class="headerlink" href="#how-member_history-works" title="Permanent link">&para;</a></h3>
+<p><code>MEMBER_HISTORY</code> is <strong>not</strong> a one-row-per-member table. It contains one row per member per billing period (~3M rows total). Key columns:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rinsed_membership_id</code></td>
+<td>Unique member identifier</td>
+</tr>
+<tr>
+<td><code>cohort_month</code></td>
+<td>First day of signup month</td>
+</tr>
+<tr>
+<td><code>join_date</code></td>
+<td>Exact signup date</td>
+</tr>
+<tr>
+<td><code>join_plan_name</code></td>
+<td>Plan at time of signup</td>
+</tr>
+<tr>
+<td><code>period_month</code></td>
+<td>Tenure: 0 = signup month, 1 = first renewal, etc.</td>
+</tr>
+<tr>
+<td><code>churn_period</code></td>
+<td>Tenure month when churn occurred (NULL if still active)</td>
+</tr>
+<tr>
+<td><code>churn_type</code></td>
+<td><code>'terminated'</code> (voluntary) or <code>'expired'</code> (involuntary)</td>
+</tr>
+<tr>
+<td><code>churn_date</code></td>
+<td>Date of cancellation event</td>
+</tr>
+<tr>
+<td><code>location_name</code></td>
+<td>Member's location</td>
+</tr>
+</tbody>
+</table>
+<h3 id="rejoins">Rejoins<a class="headerlink" href="#rejoins" title="Permanent link">&para;</a></h3>
+<p>Members can cancel and rejoin. Each membership stint is a separate entry — a member who signs up in January, cancels in April, and rejoins in September appears in both the January and September cohorts. This is intentional: it lets you evaluate promo-driven rejoins as their own cohort.</p>
+<h3 id="churned-vs-members-delta">Churned vs. Members Delta<a class="headerlink" href="#churned-vs-members-delta" title="Permanent link">&para;</a></h3>
+<p>The difference between <code>members[period N]</code> and <code>members[period N+1]</code> may not exactly equal <code>churned[period N]</code>. This happens because some members may drop out of the billing table without a formal churn event recorded. The <code>churned</code> count represents members with an explicit <code>churn_period</code> match — it's the reliable floor for churn measurement.</p>
+<hr />
+<h2 id="sqlite-caching-pattern">SQLite Caching Pattern<a class="headerlink" href="#sqlite-caching-pattern" title="Permanent link">&para;</a></h2>
+<p>The retention grid maps directly to a SQLite table for the connector:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">import</span> <span class="nn">sqlite3</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="k">with</span> <span class="n">RinsedClient</span><span class="p">()</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">cohorts</span><span class="o">.</span><span class="n">retention_grid</span><span class="p">(</span><span class="s2">&quot;2020-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2026-05-01&quot;</span><span class="p">)</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>    <span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;cohorts.db&quot;</span><span class="p">)</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="s2">        CREATE TABLE IF NOT EXISTS cohort_retention (</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="s2">            cohort_month TEXT,</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="s2">            period_month INTEGER,</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="s2">            members INTEGER,</span>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="s2">            churned INTEGER,</span>
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="s2">            voluntary_churned INTEGER,</span>
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="s2">            involuntary_churned INTEGER,</span>
+<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="s2">            PRIMARY KEY (cohort_month, period_month)</span>
+<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="s2">        )</span>
+<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="s2">    &quot;&quot;&quot;</span><span class="p">)</span>
+<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>
+<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">rows</span><span class="p">:</span>
+<a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a>        <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;INSERT OR REPLACE INTO cohort_retention</span>
+<a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a><span class="sd">               VALUES (?, ?, ?, ?, ?, ?)&quot;&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a>            <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">cohort_month</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">period_month</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">members</span><span class="p">,</span>
+<a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a>             <span class="n">row</span><span class="o">.</span><span class="n">churned</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">voluntary_churned</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">involuntary_churned</span><span class="p">),</span>
+<a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a>        <span class="p">)</span>
+<a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a>    <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</code></pre></div>
+<p>For plan-level data, add <code>join_plan_name</code> to the schema and primary key.</p>
+<h3 id="json-export">JSON Export<a class="headerlink" href="#json-export" title="Permanent link">&para;</a></h3>
+<p>All result models serialize cleanly:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">cohorts</span><span class="o">.</span><span class="n">retention_grid</span><span class="p">(</span><span class="s2">&quot;2025-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2025-06-01&quot;</span><span class="p">)</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;retention_grid.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">(</span><span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+</code></pre></div>
+<hr />
+<h2 id="performance">Performance<a class="headerlink" href="#performance" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Query</th>
+<th>Scope</th>
+<th>Approx. Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>retention_grid</code></td>
+<td>1 month</td>
+<td>~2s</td>
+</tr>
+<tr>
+<td><code>retention_grid</code></td>
+<td>1 year</td>
+<td>~3s</td>
+</tr>
+<tr>
+<td><code>retention_grid</code></td>
+<td>All time</td>
+<td>~5s</td>
+</tr>
+<tr>
+<td><code>retention_by_plan</code></td>
+<td>1 month</td>
+<td>~3s</td>
+</tr>
+<tr>
+<td><code>retention_by_plan</code></td>
+<td>1 year</td>
+<td>~5s</td>
+</tr>
+<tr>
+<td><code>retention_by_plan</code></td>
+<td>All time</td>
+<td>~8s</td>
+</tr>
+</tbody>
+</table>
+<p>Plan-level queries are slower due to the additional grouping dimension and higher row count.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy", "content.tabs.link", "navigation.expand", "navigation.sections", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
