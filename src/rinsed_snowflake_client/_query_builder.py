@@ -645,3 +645,67 @@ def recharge_churn_sql(
     """
 
     return (sql.strip(), params)
+
+
+# ---------------------------------------------------------------------------
+# Cohort retention queries
+# ---------------------------------------------------------------------------
+
+
+def cohort_retention_grid_sql(
+    start: DateInput | None, end: DateInput | None, locations: Locations
+) -> tuple[str, list]:
+    """Retention grid: cohort_month x period_month with member/churn counts.
+
+    Each row = one cohort at one tenure period.  ``members`` is how many
+    were still billing at that period.  ``churned`` is how many left
+    during that period (churn_period = period_month).
+    """
+    sql = """
+        SELECT
+            cohort_month,
+            period_month,
+            COUNT(DISTINCT rinsed_membership_id) AS members,
+            COUNT(DISTINCT CASE WHEN churn_period = period_month
+                THEN rinsed_membership_id END) AS churned,
+            COUNT(DISTINCT CASE WHEN churn_period = period_month
+                AND churn_type = 'terminated'
+                THEN rinsed_membership_id END) AS voluntary_churned,
+            COUNT(DISTINCT CASE WHEN churn_period = period_month
+                AND churn_type = 'expired'
+                THEN rinsed_membership_id END) AS involuntary_churned
+        FROM member_history
+        WHERE 1=1
+    """.strip()
+    params: list = []
+    sql = _apply_filters(sql, params, "cohort_month", start, end, locations)
+    sql += " GROUP BY cohort_month, period_month ORDER BY cohort_month, period_month"
+    return (sql, params)
+
+
+def cohort_retention_by_plan_sql(
+    start: DateInput | None, end: DateInput | None, locations: Locations
+) -> tuple[str, list]:
+    """Retention grid sliced by join_plan_name (plan at signup)."""
+    sql = """
+        SELECT
+            cohort_month,
+            period_month,
+            join_plan_name,
+            COUNT(DISTINCT rinsed_membership_id) AS members,
+            COUNT(DISTINCT CASE WHEN churn_period = period_month
+                THEN rinsed_membership_id END) AS churned,
+            COUNT(DISTINCT CASE WHEN churn_period = period_month
+                AND churn_type = 'terminated'
+                THEN rinsed_membership_id END) AS voluntary_churned,
+            COUNT(DISTINCT CASE WHEN churn_period = period_month
+                AND churn_type = 'expired'
+                THEN rinsed_membership_id END) AS involuntary_churned
+        FROM member_history
+        WHERE 1=1
+    """.strip()
+    params: list = []
+    sql = _apply_filters(sql, params, "cohort_month", start, end, locations)
+    sql += " GROUP BY cohort_month, period_month, join_plan_name"
+    sql += " ORDER BY cohort_month, period_month, join_plan_name"
+    return (sql, params)

@@ -50,6 +50,7 @@ nav:
       - Getting Started: guides/getting-started.md
       - Sites: guides/sites.md
       - Stats & KPIs: guides/stats.md
+      - Cohort Retention: guides/cohorts.md
       - Churn Rates: guides/churn.md
       - Raw Queries: guides/raw-queries.md
       - Error Handling: guides/error-handling.md

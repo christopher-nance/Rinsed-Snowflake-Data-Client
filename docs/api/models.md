@@ -49,3 +49,19 @@ All methods return typed Pydantic models.
 ## DailyKPIResult
 
 ::: rinsed_snowflake_client.DailyKPIResult
+
+## CohortPeriodRow
+
+::: rinsed_snowflake_client.CohortPeriodRow
+
+## CohortRetentionResult
+
+::: rinsed_snowflake_client.CohortRetentionResult
+
+## CohortPlanPeriodRow
+
+::: rinsed_snowflake_client.CohortPlanPeriodRow
+
+## CohortRetentionByPlanResult
+
+::: rinsed_snowflake_client.CohortRetentionByPlanResult

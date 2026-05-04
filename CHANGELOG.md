@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.7.0 — 2026-05-04
+
+### Added
+- `client.cohorts` resource — cohort retention analysis powered by `MEMBER_HISTORY`.
+- `client.cohorts.retention_grid(start, end, locations?)` — pre-aggregated retention matrix: `cohort_month` x `period_month` with member counts, churned counts (voluntary/involuntary). Period 0 = signup month. Start/end filter by cohort month, not calendar date.
+- `client.cohorts.retention_by_plan(start, end, locations?)` — same retention grid sliced by `join_plan_name` (membership plan at time of signup) for plan-level cohort comparison.
+- New types: `CohortPeriodRow`, `CohortRetentionResult`, `CohortPlanPeriodRow`, `CohortRetentionByPlanResult`.
+- Cohort analysis guide in documentation with retention grid examples, plan-level slicing, SQLite caching patterns, and data model explanation.
+
+### Notes
+- `MEMBER_HISTORY` contains one row per member per billing period (~3M rows), with pre-built cohort fields: `cohort_month`, `period_month`, `churn_period`, `join_plan_name`, `join_date`. The client aggregates these into the retention grid shape the frontend needs.
+- Retention rate is derived by the consumer: `members_at_period_N / members_at_period_0`. Raw counts are returned to avoid prescribing a single retention definition.
+- Members can cancel and rejoin — each stint is a separate cohort entry. A March 2025 cohort includes both new signups and rejoins from that month.
+
 ## 0.6.1 — 2026-05-03
 
 ### Fixed
