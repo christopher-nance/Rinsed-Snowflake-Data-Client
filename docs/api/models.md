@@ -65,3 +65,11 @@ All methods return typed Pydantic models.
 ## CohortRetentionByPlanResult
 
 ::: rinsed_snowflake_client.CohortRetentionByPlanResult
+
+## CohortMemberRow
+
+::: rinsed_snowflake_client.CohortMemberRow
+
+## CohortMembersResult
+
+::: rinsed_snowflake_client.CohortMembersResult

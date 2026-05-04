@@ -7,10 +7,13 @@ from typing import TYPE_CHECKING
 
 from rinsed_snowflake_client._filters import DateInput, Locations
 from rinsed_snowflake_client._query_builder import (
+    cohort_members_sql,
     cohort_retention_by_plan_sql,
     cohort_retention_grid_sql,
 )
 from rinsed_snowflake_client.types._cohorts import (
+    CohortMemberRow,
+    CohortMembersResult,
     CohortPeriodRow,
     CohortPlanPeriodRow,
     CohortRetentionByPlanResult,
@@ -25,6 +28,12 @@ def _safe_int(value) -> int:
     if value is None or (isinstance(value, float) and math.isnan(value)):
         return 0
     return int(value)
+
+
+def _safe_float(value) -> float:
+    if value is None or (isinstance(value, float) and math.isnan(value)):
+        return 0.0
+    return float(value)
 
 
 class CohortResource:
@@ -117,4 +126,63 @@ class CohortResource:
             cohort_count=len(cohorts),
             plan_count=len(plans),
             max_period=max_period,
+        )
+
+    def members(
+        self,
+        start: DateInput,
+        end: DateInput,
+        locations: Locations = None,
+    ) -> CohortMembersResult:
+        """Member-level drill-down for cohorts in the date range.
+
+        Returns one row per member showing their latest state: current
+        plan, tenure, churn status, and revenue.  Use this to inspect
+        individual members within a cohort or export member lists.
+
+        Args:
+            start: Earliest cohort month to include.
+            end: Latest cohort month to include.
+            locations: Filter by location name(s).
+        """
+        sql, params = cohort_members_sql(start, end, locations)
+        df = self._client._execute(sql, params)
+
+        rows = []
+        active = 0
+        cancelled = 0
+        for _, r in df.iterrows():
+            churn_date = str(r["churn_date"]) if r["churn_date"] is not None else None
+            churn_type = str(r["churn_type"]) if r["churn_type"] is not None else None
+            churn_period_val = r["churn_period"]
+            churn_period = None if churn_period_val is None or (isinstance(churn_period_val, float) and math.isnan(churn_period_val)) else int(churn_period_val)
+            status = "cancelled" if churn_date else "active"
+
+            if status == "active":
+                active += 1
+            else:
+                cancelled += 1
+
+            rows.append(CohortMemberRow(
+                rinsed_membership_id=str(r["rinsed_membership_id"]),
+                location_name=str(r["location_name"]),
+                join_date=str(r["join_date"]),
+                join_plan_name=str(r["join_plan_name"]) if r["join_plan_name"] else "Unknown",
+                cohort_month=str(r["cohort_month"]),
+                plan_name=str(r["plan_name"]) if r["plan_name"] else "Unknown",
+                revenue=_safe_float(r["revenue"]),
+                tenure_months=_safe_int(r["tenure_months"]),
+                churn_date=churn_date,
+                churn_type=churn_type,
+                churn_period=churn_period,
+                status=status,
+            ))
+
+        return CohortMembersResult(
+            rows=rows,
+            total_members=len(rows),
+            active_count=active,
+            cancelled_count=cancelled,
+            period_start=str(start),
+            period_end=str(end),
         )

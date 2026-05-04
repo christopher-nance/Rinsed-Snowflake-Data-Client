@@ -45,3 +45,31 @@ class CohortRetentionByPlanResult(RinsedModel):
     cohort_count: int
     plan_count: int
     max_period: int
+
+
+class CohortMemberRow(RinsedModel):
+    """Individual member record within a cohort."""
+
+    rinsed_membership_id: str
+    location_name: str
+    join_date: str
+    join_plan_name: str
+    cohort_month: str
+    plan_name: str
+    revenue: float
+    tenure_months: int
+    churn_date: str | None
+    churn_type: str | None
+    churn_period: int | None
+    status: str
+
+
+class CohortMembersResult(RinsedModel):
+    """Member-level drill-down for a cohort range."""
+
+    rows: list[CohortMemberRow]
+    total_members: int
+    active_count: int
+    cancelled_count: int
+    period_start: str
+    period_end: str

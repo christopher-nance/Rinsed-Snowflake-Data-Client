@@ -2,6 +2,8 @@
 
 from rinsed_snowflake_client.types._base import RinsedModel
 from rinsed_snowflake_client.types._cohorts import (
+    CohortMemberRow,
+    CohortMembersResult,
     CohortPeriodRow,
     CohortPlanPeriodRow,
     CohortRetentionByPlanResult,
@@ -29,6 +31,8 @@ from rinsed_snowflake_client.types._stats import (
 )
 
 __all__ = [
+    "CohortMemberRow",
+    "CohortMembersResult",
     "CohortPeriodRow",
     "CohortPlanPeriodRow",
     "CohortRetentionByPlanResult",

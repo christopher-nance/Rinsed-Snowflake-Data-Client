@@ -709,3 +709,43 @@ def cohort_retention_by_plan_sql(
     sql += " GROUP BY cohort_month, period_month, join_plan_name"
     sql += " ORDER BY cohort_month, period_month, join_plan_name"
     return (sql, params)
+
+
+def cohort_members_sql(
+    start: DateInput | None, end: DateInput | None, locations: Locations
+) -> tuple[str, list]:
+    """One row per member in the cohort range, showing their latest state.
+
+    Uses ROW_NUMBER to collapse the per-billing-period rows down to
+    the most recent period per member.
+    """
+    sql = """
+        SELECT
+            rinsed_membership_id,
+            location_name,
+            join_date,
+            join_plan_name,
+            cohort_month,
+            plan_name,
+            revenue,
+            period_month AS tenure_months,
+            churn_date,
+            churn_type,
+            churn_period
+        FROM (
+            SELECT *,
+                ROW_NUMBER() OVER (
+                    PARTITION BY rinsed_membership_id
+                    ORDER BY period_month DESC
+                ) AS rn
+            FROM member_history
+            WHERE rinsed_membership_id IS NOT NULL
+    """.strip()
+    params: list = []
+    sql = _apply_filters(sql, params, "cohort_month", start, end, locations)
+    sql += """
+        ) ranked
+        WHERE rn = 1
+        ORDER BY cohort_month, location_name, join_date
+    """
+    return (sql.strip(), params)

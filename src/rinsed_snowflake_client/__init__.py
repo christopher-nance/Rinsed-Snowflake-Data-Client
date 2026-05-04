@@ -13,6 +13,8 @@ from rinsed_snowflake_client.types import (
     AWPResult,
     CarCountResult,
     ChurnResult,
+    CohortMemberRow,
+    CohortMembersResult,
     CohortPeriodRow,
     CohortPlanPeriodRow,
     CohortRetentionByPlanResult,
@@ -41,6 +43,8 @@ __all__ = [
     "RinsedError",
     "ValidationError",
     # Types
+    "CohortMemberRow",
+    "CohortMembersResult",
     "CohortPeriodRow",
     "CohortPlanPeriodRow",
     "CohortRetentionByPlanResult",

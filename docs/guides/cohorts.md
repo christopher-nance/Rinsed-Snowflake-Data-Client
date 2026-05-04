@@ -186,6 +186,140 @@ result = client.cohorts.retention_grid(
 
 ---
 
+## Member Drill-Down
+
+Click into any cohort to see individual members. Returns one row per member with their latest state — current plan, tenure, revenue, and churn status.
+
+```python
+result = client.cohorts.members("2025-01-01", "2025-01-31", "Burbank")
+print(f"Total: {result.total_members}")     # 283
+print(f"Active: {result.active_count}")     # 161
+print(f"Cancelled: {result.cancelled_count}")  # 122
+```
+
+Each row contains:
+
+| Field | Description |
+|---|---|
+| `rinsed_membership_id` | Unique member identifier |
+| `location_name` | Member's location |
+| `join_date` | Exact signup date |
+| `join_plan_name` | Plan at time of signup |
+| `cohort_month` | Cohort (first of signup month) |
+| `plan_name` | Current or last active plan |
+| `revenue` | Latest billing amount |
+| `tenure_months` | How many billing periods they've had |
+| `churn_date` | Date of cancellation (None if active) |
+| `churn_type` | `'terminated'` (voluntary), `'expired'` (involuntary), or None |
+| `churn_period` | Tenure month when churn occurred (None if active) |
+| `status` | `'active'` or `'cancelled'` |
+
+### Inspecting Churned Members
+
+```python
+result = client.cohorts.members("2025-01-01", "2025-01-31")
+
+# Find all voluntary cancellations
+voluntary = [r for r in result.rows if r.churn_type == "terminated"]
+print(f"{len(voluntary)} voluntary cancellations")
+
+for m in voluntary[:5]:
+    print(f"  {m.rinsed_membership_id} | {m.join_plan_name} | "
+          f"tenure={m.tenure_months}mo | churned {m.churn_date}")
+```
+
+### Early Churn Analysis
+
+Find members who cancelled within their first 3 months — useful for identifying onboarding problems or low-quality leads:
+
+```python
+result = client.cohorts.members("2025-01-01", "2025-03-01")
+
+early_churners = [r for r in result.rows
+                  if r.status == "cancelled" and r.churn_period is not None
+                  and r.churn_period <= 2]
+
+print(f"{len(early_churners)} members churned within 3 months")
+
+# Break down by plan
+from collections import Counter
+plan_counts = Counter(r.join_plan_name for r in early_churners)
+for plan, count in plan_counts.most_common():
+    print(f"  {plan}: {count}")
+```
+
+### Promo Cohort Member List
+
+Pull the full member list for a promo cohort to evaluate member quality:
+
+```python
+result = client.cohorts.members("2025-03-01", "2025-03-31")
+
+# Separate promo vs regular signups
+promo = [r for r in result.rows if "9.95" in r.join_plan_name]
+regular = [r for r in result.rows if "9.95" not in r.join_plan_name]
+
+promo_active = sum(1 for r in promo if r.status == "active")
+regular_active = sum(1 for r in regular if r.status == "active")
+
+print(f"Promo: {promo_active}/{len(promo)} still active "
+      f"({promo_active/len(promo):.0%})")
+print(f"Regular: {regular_active}/{len(regular)} still active "
+      f"({regular_active/len(regular):.0%})")
+```
+
+### Revenue by Tenure
+
+Analyze how billing amounts change as members age:
+
+```python
+from collections import defaultdict
+
+result = client.cohorts.members("2025-01-01", "2025-01-31")
+active = [r for r in result.rows if r.status == "active"]
+
+# Group by tenure bucket
+buckets = defaultdict(list)
+for m in active:
+    if m.tenure_months <= 3:
+        buckets["0-3 months"].append(m.revenue)
+    elif m.tenure_months <= 6:
+        buckets["4-6 months"].append(m.revenue)
+    elif m.tenure_months <= 12:
+        buckets["7-12 months"].append(m.revenue)
+    else:
+        buckets["13+ months"].append(m.revenue)
+
+for bucket, revenues in sorted(buckets.items()):
+    avg = sum(revenues) / len(revenues) if revenues else 0
+    print(f"{bucket}: {len(revenues)} members, avg ${avg:.2f}/mo")
+```
+
+### Export to CSV
+
+```python
+import csv
+
+result = client.cohorts.members("2025-01-01", "2025-06-01")
+
+with open("cohort_members.csv", "w", newline="") as f:
+    writer = csv.writer(f)
+    writer.writerow([
+        "member_id", "location", "join_date", "join_plan",
+        "cohort_month", "current_plan", "revenue", "tenure_months",
+        "churn_date", "churn_type", "status",
+    ])
+    for r in result.rows:
+        writer.writerow([
+            r.rinsed_membership_id, r.location_name, r.join_date,
+            r.join_plan_name, r.cohort_month, r.plan_name, r.revenue,
+            r.tenure_months, r.churn_date or "", r.churn_type or "",
+            r.status,
+        ])
+```
+
+---
+
 ## Data Model
 
 ### How MEMBER_HISTORY Works
@@ -272,5 +406,7 @@ with open("retention_grid.json", "w") as f:
 | `retention_by_plan` | 1 month | ~3s |
 | `retention_by_plan` | 1 year | ~5s |
 | `retention_by_plan` | All time | ~8s |
+| `members` | 1 month | ~2s |
+| `members` | 1 year | ~4s |
 
-Plan-level queries are slower due to the additional grouping dimension and higher row count.
+Plan-level queries are slower due to the additional grouping dimension. Member drill-down returns more rows but is a simple windowed query.
