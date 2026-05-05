@@ -667,10 +667,21 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#how-member_history-works" class="md-nav__link">
+  <a href="#how-retention-is-measured" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How MEMBER_HISTORY Works
+        How Retention Is Measured
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#churn-classification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Churn Classification
       
     </span>
   </a>
@@ -689,10 +700,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#churned-vs-members-delta" class="md-nav__link">
+  <a href="#pos-migration-impact" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Churned vs. Members Delta
+        POS Migration Impact
       
     </span>
   </a>
@@ -1221,10 +1232,21 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#how-member_history-works" class="md-nav__link">
+  <a href="#how-retention-is-measured" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How MEMBER_HISTORY Works
+        How Retention Is Measured
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#churn-classification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Churn Classification
       
     </span>
   </a>
@@ -1243,10 +1265,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#churned-vs-members-delta" class="md-nav__link">
+  <a href="#pos-migration-impact" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Churned vs. Members Delta
+        POS Migration Impact
       
     </span>
   </a>
@@ -1318,7 +1340,7 @@
 
 
 <h1 id="cohort-retention-analysis">Cohort Retention Analysis<a class="headerlink" href="#cohort-retention-analysis" title="Permanent link">&para;</a></h1>
-<p>Cohort methods are accessed via <code>client.cohorts</code> and return pre-aggregated retention data from <code>MEMBER_HISTORY</code>. The data shape is designed for retention grids, survival curves, and plan-level comparisons.</p>
+<p>Cohort methods are accessed via <code>client.cohorts</code> and return pre-aggregated retention data matching Rinsed's cohort triangle. Retention is measured by actual recharge transactions in <code>FCT_MEMBERSHIPS</code>. Churn classification (voluntary/involuntary) is overlaid from <code>MEMBER_HISTORY</code> where available — when a member stops recharging but has no matching churn record, their churn is reported as <code>unclassified_churned</code>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">client</span><span class="o">.</span><span class="n">cohorts</span><span class="o">.</span><span class="n">retention_grid</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">locations</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">client</span><span class="o">.</span><span class="n">cohorts</span><span class="o">.</span><span class="n">retention_by_plan</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">locations</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </code></pre></div>
@@ -1356,15 +1378,19 @@
 </tr>
 <tr>
 <td><code>churned</code></td>
-<td>Members who churned during this period</td>
+<td>Total churned this period (prior period members - current members)</td>
 </tr>
 <tr>
 <td><code>voluntary_churned</code></td>
-<td>Member-initiated cancellations</td>
+<td>Member-initiated cancellations (from MEMBER_HISTORY)</td>
 </tr>
 <tr>
 <td><code>involuntary_churned</code></td>
-<td>Payment failures</td>
+<td>Payment failures (from MEMBER_HISTORY)</td>
+</tr>
+<tr>
+<td><code>unclassified_churned</code></td>
+<td>Churned but no MEMBER_HISTORY classification available</td>
 </tr>
 </tbody>
 </table>
@@ -1374,13 +1400,12 @@
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">rows</span><span class="p">[:</span><span class="mi">6</span><span class="p">]:</span>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Period </span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">period_month</span><span class="si">:</span><span class="s2">2d</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">members</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> members, &quot;</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>          <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">churned</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> churned &quot;</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>          <span class="sa">f</span><span class="s2">&quot;(vol=</span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">voluntary_churned</span><span class="si">}</span><span class="s2">, inv=</span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">involuntary_churned</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># Period  0: 3,265 members, 67 churned (vol=67, inv=0)</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="c1"># Period  1: 3,052 members, 339 churned (vol=326, inv=13)</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="c1"># Period  2: 2,749 members, 341 churned (vol=263, inv=78)</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="c1"># Period  3: 2,368 members, 256 churned (vol=197, inv=59)</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="c1"># Period  4: 2,035 members, 160 churned (vol=127, inv=33)</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="c1"># Period  5: 1,865 members, 120 churned (vol=86, inv=34)</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>          <span class="sa">f</span><span class="s2">&quot;(vol=</span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">voluntary_churned</span><span class="si">}</span><span class="s2">, inv=</span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">involuntary_churned</span><span class="si">}</span><span class="s2">, &quot;</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>          <span class="sa">f</span><span class="s2">&quot;uncl=</span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">unclassified_churned</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="c1"># Period  0: 4,016 members, 0 churned (vol=161, inv=0, uncl=0)</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="c1"># Period  1: 3,116 members, 900 churned (vol=116, inv=2, uncl=782)</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="c1"># Period  2: 2,726 members, 390 churned (vol=84, inv=5, uncl=301)</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="c1"># Period  3: 2,411 members, 315 churned (vol=67, inv=0, uncl=248)</span>
 </code></pre></div>
 <p><strong>Period 0</strong> is the signup month — the initial cohort size. Each subsequent period shows how many members remain and how many left.</p>
 <h3 id="computing-retention-rate">Computing Retention Rate<a class="headerlink" href="#computing-retention-rate" title="Permanent link">&para;</a></h3>
@@ -1699,58 +1724,28 @@
 </code></pre></div>
 <hr />
 <h2 id="data-model">Data Model<a class="headerlink" href="#data-model" title="Permanent link">&para;</a></h2>
-<h3 id="how-member_history-works">How MEMBER_HISTORY Works<a class="headerlink" href="#how-member_history-works" title="Permanent link">&para;</a></h3>
-<p><code>MEMBER_HISTORY</code> is <strong>not</strong> a one-row-per-member table. It contains one row per member per billing period (~3M rows total). Key columns:</p>
-<table>
-<thead>
-<tr>
-<th>Column</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>rinsed_membership_id</code></td>
-<td>Unique member identifier</td>
-</tr>
-<tr>
-<td><code>cohort_month</code></td>
-<td>First day of signup month</td>
-</tr>
-<tr>
-<td><code>join_date</code></td>
-<td>Exact signup date</td>
-</tr>
-<tr>
-<td><code>join_plan_name</code></td>
-<td>Plan at time of signup</td>
-</tr>
-<tr>
-<td><code>period_month</code></td>
-<td>Tenure: 0 = signup month, 1 = first renewal, etc.</td>
-</tr>
-<tr>
-<td><code>churn_period</code></td>
-<td>Tenure month when churn occurred (NULL if still active)</td>
-</tr>
-<tr>
-<td><code>churn_type</code></td>
-<td><code>'terminated'</code> (voluntary) or <code>'expired'</code> (involuntary)</td>
-</tr>
-<tr>
-<td><code>churn_date</code></td>
-<td>Date of cancellation event</td>
-</tr>
-<tr>
-<td><code>location_name</code></td>
-<td>Member's location</td>
-</tr>
-</tbody>
-</table>
+<h3 id="how-retention-is-measured">How Retention Is Measured<a class="headerlink" href="#how-retention-is-measured" title="Permanent link">&para;</a></h3>
+<p>Retention uses <strong>actual recharge transactions</strong> from <code>FCT_MEMBERSHIPS</code>, matching Rinsed's cohort triangle methodology:</p>
+<ol>
+<li><strong>Cohort (period 0)</strong> = members with a <code>new membership</code> or <code>rejoin membership</code> transaction in the signup month</li>
+<li><strong>Retained at period N</strong> = members from the cohort who have a <code>renewed membership</code> transaction N calendar months after their signup month</li>
+<li><strong>Churned at period N</strong> = <code>members[N-1] - members[N]</code> (derived from the delta)</li>
+</ol>
+<h3 id="churn-classification">Churn Classification<a class="headerlink" href="#churn-classification" title="Permanent link">&para;</a></h3>
+<p>Voluntary/involuntary classification comes from <code>MEMBER_HISTORY</code>, which is a separate table with its own churn tracking. Not every churned member (someone who stopped recharging) has a matching <code>MEMBER_HISTORY</code> record. When a member stops recharging but has no churn classification:</p>
+<ul>
+<li><code>churned</code> = total who left this period (always accurate — derived from member counts)</li>
+<li><code>voluntary_churned</code> + <code>involuntary_churned</code> = classified portion from <code>MEMBER_HISTORY</code></li>
+<li><code>unclassified_churned</code> = <code>churned - voluntary - involuntary</code> (the gap)</li>
+</ul>
+<div class="admonition info">
+<p class="admonition-title">Why unclassified?</p>
+<p>A member may stop recharging without a formal cancellation event in <code>MEMBER_HISTORY</code>. This can happen during POS migrations, system transitions, or when the churn event is recorded differently across tables. The <code>unclassified_churned</code> field makes this gap visible rather than hiding it.</p>
+</div>
 <h3 id="rejoins">Rejoins<a class="headerlink" href="#rejoins" title="Permanent link">&para;</a></h3>
 <p>Members can cancel and rejoin. Each membership stint is a separate entry — a member who signs up in January, cancels in April, and rejoins in September appears in both the January and September cohorts. This is intentional: it lets you evaluate promo-driven rejoins as their own cohort.</p>
-<h3 id="churned-vs-members-delta">Churned vs. Members Delta<a class="headerlink" href="#churned-vs-members-delta" title="Permanent link">&para;</a></h3>
-<p>The difference between <code>members[period N]</code> and <code>members[period N+1]</code> may not exactly equal <code>churned[period N]</code>. This happens because some members may drop out of the billing table without a formal churn event recorded. The <code>churned</code> count represents members with an explicit <code>churn_period</code> match — it's the reliable floor for churn measurement.</p>
+<h3 id="pos-migration-impact">POS Migration Impact<a class="headerlink" href="#pos-migration-impact" title="Permanent link">&para;</a></h3>
+<p>Cohorts from May–August 2025 may show 2-10pp higher churn than Rinsed's triangle at later periods. This is caused by the DRB-to-Sonny's POS migration (Phase 2: April/May 2025) — member IDs changed mid-migration, breaking recharge continuity for some members. Cohorts from September 2025 onward match Rinsed's triangle within 0-1pp.</p>
 <hr />
 <h2 id="sqlite-caching-pattern">SQLite Caching Pattern<a class="headerlink" href="#sqlite-caching-pattern" title="Permanent link">&para;</a></h2>
 <p>The retention grid maps directly to a SQLite table for the connector:</p>
@@ -1768,18 +1763,20 @@
 <a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a><span class="s2">            churned INTEGER,</span>
 <a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a><span class="s2">            voluntary_churned INTEGER,</span>
 <a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a><span class="s2">            involuntary_churned INTEGER,</span>
-<a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a><span class="s2">            PRIMARY KEY (cohort_month, period_month)</span>
-<a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a><span class="s2">        )</span>
-<a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a><span class="s2">    &quot;&quot;&quot;</span><span class="p">)</span>
-<a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a>
-<a id="__codelineno-18-19" name="__codelineno-18-19" href="#__codelineno-18-19"></a>    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">rows</span><span class="p">:</span>
-<a id="__codelineno-18-20" name="__codelineno-18-20" href="#__codelineno-18-20"></a>        <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
-<a id="__codelineno-18-21" name="__codelineno-18-21" href="#__codelineno-18-21"></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;INSERT OR REPLACE INTO cohort_retention</span>
-<a id="__codelineno-18-22" name="__codelineno-18-22" href="#__codelineno-18-22"></a><span class="sd">               VALUES (?, ?, ?, ?, ?, ?)&quot;&quot;&quot;</span><span class="p">,</span>
-<a id="__codelineno-18-23" name="__codelineno-18-23" href="#__codelineno-18-23"></a>            <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">cohort_month</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">period_month</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">members</span><span class="p">,</span>
-<a id="__codelineno-18-24" name="__codelineno-18-24" href="#__codelineno-18-24"></a>             <span class="n">row</span><span class="o">.</span><span class="n">churned</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">voluntary_churned</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">involuntary_churned</span><span class="p">),</span>
-<a id="__codelineno-18-25" name="__codelineno-18-25" href="#__codelineno-18-25"></a>        <span class="p">)</span>
-<a id="__codelineno-18-26" name="__codelineno-18-26" href="#__codelineno-18-26"></a>    <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a><span class="s2">            unclassified_churned INTEGER,</span>
+<a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a><span class="s2">            PRIMARY KEY (cohort_month, period_month)</span>
+<a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a><span class="s2">        )</span>
+<a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a><span class="s2">    &quot;&quot;&quot;</span><span class="p">)</span>
+<a id="__codelineno-18-19" name="__codelineno-18-19" href="#__codelineno-18-19"></a>
+<a id="__codelineno-18-20" name="__codelineno-18-20" href="#__codelineno-18-20"></a>    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">rows</span><span class="p">:</span>
+<a id="__codelineno-18-21" name="__codelineno-18-21" href="#__codelineno-18-21"></a>        <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<a id="__codelineno-18-22" name="__codelineno-18-22" href="#__codelineno-18-22"></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;INSERT OR REPLACE INTO cohort_retention</span>
+<a id="__codelineno-18-23" name="__codelineno-18-23" href="#__codelineno-18-23"></a><span class="sd">               VALUES (?, ?, ?, ?, ?, ?, ?)&quot;&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-18-24" name="__codelineno-18-24" href="#__codelineno-18-24"></a>            <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">cohort_month</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">period_month</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">members</span><span class="p">,</span>
+<a id="__codelineno-18-25" name="__codelineno-18-25" href="#__codelineno-18-25"></a>             <span class="n">row</span><span class="o">.</span><span class="n">churned</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">voluntary_churned</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">involuntary_churned</span><span class="p">,</span>
+<a id="__codelineno-18-26" name="__codelineno-18-26" href="#__codelineno-18-26"></a>             <span class="n">row</span><span class="o">.</span><span class="n">unclassified_churned</span><span class="p">),</span>
+<a id="__codelineno-18-27" name="__codelineno-18-27" href="#__codelineno-18-27"></a>        <span class="p">)</span>
+<a id="__codelineno-18-28" name="__codelineno-18-28" href="#__codelineno-18-28"></a>    <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 </code></pre></div>
 <p>For plan-level data, add <code>join_plan_name</code> to the schema and primary key.</p>
 <h3 id="json-export">JSON Export<a class="headerlink" href="#json-export" title="Permanent link">&para;</a></h3>
