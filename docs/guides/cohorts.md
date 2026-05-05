@@ -1,6 +1,6 @@
 # Cohort Retention Analysis
 
-Cohort methods are accessed via `client.cohorts` and return pre-aggregated retention data from `MEMBER_HISTORY`. The data shape is designed for retention grids, survival curves, and plan-level comparisons.
+Cohort methods are accessed via `client.cohorts` and return pre-aggregated retention data matching Rinsed's cohort triangle. Retention is measured by actual recharge transactions in `FCT_MEMBERSHIPS`. Churn classification (voluntary/involuntary) is overlaid from `MEMBER_HISTORY` where available — when a member stops recharging but has no matching churn record, their churn is reported as `unclassified_churned`.
 
 ```python
 client.cohorts.retention_grid(start, end, locations=None)
@@ -29,9 +29,10 @@ Each row contains:
 | `cohort_month` | Signup month (first of month) |
 | `period_month` | Tenure period (0 = signup month, 1 = first renewal, ...) |
 | `members` | Members still billing at this period |
-| `churned` | Members who churned during this period |
-| `voluntary_churned` | Member-initiated cancellations |
-| `involuntary_churned` | Payment failures |
+| `churned` | Total churned this period (prior period members - current members) |
+| `voluntary_churned` | Member-initiated cancellations (from MEMBER_HISTORY) |
+| `involuntary_churned` | Payment failures (from MEMBER_HISTORY) |
+| `unclassified_churned` | Churned but no MEMBER_HISTORY classification available |
 
 ### Reading the Grid
 
@@ -41,13 +42,12 @@ result = client.cohorts.retention_grid("2025-01-01", "2025-01-31")
 for row in result.rows[:6]:
     print(f"Period {row.period_month:2d}: {row.members:,} members, "
           f"{row.churned:,} churned "
-          f"(vol={row.voluntary_churned}, inv={row.involuntary_churned})")
-# Period  0: 3,265 members, 67 churned (vol=67, inv=0)
-# Period  1: 3,052 members, 339 churned (vol=326, inv=13)
-# Period  2: 2,749 members, 341 churned (vol=263, inv=78)
-# Period  3: 2,368 members, 256 churned (vol=197, inv=59)
-# Period  4: 2,035 members, 160 churned (vol=127, inv=33)
-# Period  5: 1,865 members, 120 churned (vol=86, inv=34)
+          f"(vol={row.voluntary_churned}, inv={row.involuntary_churned}, "
+          f"uncl={row.unclassified_churned})")
+# Period  0: 4,016 members, 0 churned (vol=161, inv=0, uncl=0)
+# Period  1: 3,116 members, 900 churned (vol=116, inv=2, uncl=782)
+# Period  2: 2,726 members, 390 churned (vol=84, inv=5, uncl=301)
+# Period  3: 2,411 members, 315 churned (vol=67, inv=0, uncl=248)
 ```
 
 **Period 0** is the signup month — the initial cohort size. Each subsequent period shows how many members remain and how many left.
@@ -375,29 +375,32 @@ with open("cohort_members.csv", "w", newline="") as f:
 
 ## Data Model
 
-### How MEMBER_HISTORY Works
+### How Retention Is Measured
 
-`MEMBER_HISTORY` is **not** a one-row-per-member table. It contains one row per member per billing period (~3M rows total). Key columns:
+Retention uses **actual recharge transactions** from `FCT_MEMBERSHIPS`, matching Rinsed's cohort triangle methodology:
 
-| Column | Description |
-|---|---|
-| `rinsed_membership_id` | Unique member identifier |
-| `cohort_month` | First day of signup month |
-| `join_date` | Exact signup date |
-| `join_plan_name` | Plan at time of signup |
-| `period_month` | Tenure: 0 = signup month, 1 = first renewal, etc. |
-| `churn_period` | Tenure month when churn occurred (NULL if still active) |
-| `churn_type` | `'terminated'` (voluntary) or `'expired'` (involuntary) |
-| `churn_date` | Date of cancellation event |
-| `location_name` | Member's location |
+1. **Cohort (period 0)** = members with a `new membership` or `rejoin membership` transaction in the signup month
+2. **Retained at period N** = members from the cohort who have a `renewed membership` transaction N calendar months after their signup month
+3. **Churned at period N** = `members[N-1] - members[N]` (derived from the delta)
+
+### Churn Classification
+
+Voluntary/involuntary classification comes from `MEMBER_HISTORY`, which is a separate table with its own churn tracking. Not every churned member (someone who stopped recharging) has a matching `MEMBER_HISTORY` record. When a member stops recharging but has no churn classification:
+
+- `churned` = total who left this period (always accurate — derived from member counts)
+- `voluntary_churned` + `involuntary_churned` = classified portion from `MEMBER_HISTORY`
+- `unclassified_churned` = `churned - voluntary - involuntary` (the gap)
+
+!!! info "Why unclassified?"
+    A member may stop recharging without a formal cancellation event in `MEMBER_HISTORY`. This can happen during POS migrations, system transitions, or when the churn event is recorded differently across tables. The `unclassified_churned` field makes this gap visible rather than hiding it.
 
 ### Rejoins
 
 Members can cancel and rejoin. Each membership stint is a separate entry — a member who signs up in January, cancels in April, and rejoins in September appears in both the January and September cohorts. This is intentional: it lets you evaluate promo-driven rejoins as their own cohort.
 
-### Churned vs. Members Delta
+### POS Migration Impact
 
-The difference between `members[period N]` and `members[period N+1]` may not exactly equal `churned[period N]`. This happens because some members may drop out of the billing table without a formal churn event recorded. The `churned` count represents members with an explicit `churn_period` match — it's the reliable floor for churn measurement.
+Cohorts from May–August 2025 may show 2-10pp higher churn than Rinsed's triangle at later periods. This is caused by the DRB-to-Sonny's POS migration (Phase 2: April/May 2025) — member IDs changed mid-migration, breaking recharge continuity for some members. Cohorts from September 2025 onward match Rinsed's triangle within 0-1pp.
 
 ---
 
@@ -420,6 +423,7 @@ with RinsedClient() as client:
             churned INTEGER,
             voluntary_churned INTEGER,
             involuntary_churned INTEGER,
+            unclassified_churned INTEGER,
             PRIMARY KEY (cohort_month, period_month)
         )
     """)
@@ -427,9 +431,10 @@ with RinsedClient() as client:
     for row in result.rows:
         conn.execute(
             """INSERT OR REPLACE INTO cohort_retention
-               VALUES (?, ?, ?, ?, ?, ?)""",
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
             (row.cohort_month, row.period_month, row.members,
-             row.churned, row.voluntary_churned, row.involuntary_churned),
+             row.churned, row.voluntary_churned, row.involuntary_churned,
+             row.unclassified_churned),
         )
     conn.commit()
 ```

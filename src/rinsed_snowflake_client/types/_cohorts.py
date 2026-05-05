@@ -12,6 +12,7 @@ class CohortPeriodRow(RinsedModel):
     churned: int
     voluntary_churned: int
     involuntary_churned: int
+    unclassified_churned: int
 
 
 class CohortRetentionResult(RinsedModel):
@@ -34,6 +35,7 @@ class CohortPlanPeriodRow(RinsedModel):
     churned: int
     voluntary_churned: int
     involuntary_churned: int
+    unclassified_churned: int
 
 
 class CohortRetentionByPlanResult(RinsedModel):

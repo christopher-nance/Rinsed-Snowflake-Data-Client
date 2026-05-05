@@ -3,17 +3,23 @@
 ## 0.7.0 — 2026-05-04
 
 ### Added
-- `client.cohorts` resource — cohort retention analysis powered by `MEMBER_HISTORY`.
-- `client.cohorts.retention_grid(start, end, locations?)` — pre-aggregated retention matrix: `cohort_month` x `period_month` with member counts, churned counts (voluntary/involuntary). Period 0 = signup month. Start/end filter by cohort month, not calendar date.
-- `client.cohorts.retention_by_plan(start, end, locations?)` — same retention grid sliced by `join_plan_name` (membership plan at time of signup) for plan-level cohort comparison.
-- `client.cohorts.members(start, end, locations?)` — member-level drill-down returning one row per member with latest state: current plan, tenure, revenue, churn status, and wash activity (`wash_count`, `last_wash_date`, `first_wash_date`, `avg_washes_per_month`). Wash counts sourced from `FCT_REDEMPTIONS` + NM&R/RM&R combos from `FCT_REVENUE`. Useful for usage frequency analysis, at-risk member identification, promo quality evaluation, and CSV exports.
+- `client.cohorts` resource — cohort retention analysis matching Rinsed's cohort triangle.
+- `client.cohorts.retention_grid(start, end, locations?)` — pre-aggregated retention matrix: `cohort_month` x `period_month` with member counts, churned counts (voluntary/involuntary/unclassified). Period 0 = signup month. Start/end filter by cohort month, not calendar date.
+- `client.cohorts.retention_by_plan(start, end, locations?)` — same retention grid sliced by `plan_name` at signup for plan-level cohort comparison.
+- `client.cohorts.members(start, end, locations?)` — member-level drill-down returning one row per member with latest state: current plan, tenure, revenue, churn status, and wash activity (`wash_count`, `last_wash_date`, `first_wash_date`, `avg_washes_per_month`). Wash counts sourced from `FCT_REDEMPTIONS` + NM&R/RM&R combos from `FCT_REVENUE`.
 - New types: `CohortPeriodRow`, `CohortRetentionResult`, `CohortPlanPeriodRow`, `CohortRetentionByPlanResult`, `CohortMemberRow`, `CohortMembersResult`.
 - Cohort analysis guide in documentation with retention grid examples, plan-level slicing, member drill-down use cases, SQLite caching patterns, and data model explanation.
 
-### Notes
-- `MEMBER_HISTORY` contains one row per member per billing period (~3M rows), with pre-built cohort fields: `cohort_month`, `period_month`, `churn_period`, `join_plan_name`, `join_date`. The client aggregates these into the retention grid shape the frontend needs.
-- Retention rate is derived by the consumer: `members_at_period_N / members_at_period_0`. Raw counts are returned to avoid prescribing a single retention definition.
-- Members can cancel and rejoin — each stint is a separate cohort entry. A March 2025 cohort includes both new signups and rejoins from that month.
+### Methodology
+- **Cohort definition**: `FCT_MEMBERSHIPS` new/rejoin transactions (matching Rinsed).
+- **Retention**: actual recharge transactions in `FCT_MEMBERSHIPS`. A member is retained at period N if they have a `renewed membership` transaction N months after signup.
+- **Churn classification**: `MEMBER_HISTORY` provides voluntary (`terminated`) / involuntary (`expired`) classification where available. When a member stops recharging but has no matching churn record, their churn is reported as `unclassified_churned` — transparent about the data gap.
+- **Churned count**: derived from period-over-period member delta (`members[N-1] - members[N]`), not from churn event records.
+
+### Validated
+- Matches Rinsed's cohort triangle within 0-1pp for cohorts from Sep 2025 onward.
+- May–Aug 2025 cohorts show 2-16pp discrepancies at later periods due to DRB-to-Sonny's POS migration (member IDs changed mid-migration, breaking recharge continuity).
+- Members can cancel and rejoin — each stint is a separate cohort entry.
 
 ## 0.6.1 — 2026-05-03
 

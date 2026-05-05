@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from collections import defaultdict
 from typing import TYPE_CHECKING
 
 from rinsed_snowflake_client._filters import DateInput, Locations
@@ -40,6 +41,13 @@ class CohortResource:
     """Cohort retention analysis methods.
 
     Access via ``client.cohorts``.
+
+    Retention is measured by actual recharge transactions in
+    ``FCT_MEMBERSHIPS`` (matching Rinsed's cohort triangle).
+    Voluntary/involuntary churn classification is overlaid from
+    ``MEMBER_HISTORY`` where available.  When a member stops
+    recharging but has no matching ``MEMBER_HISTORY`` churn record,
+    their churn is reported as ``unclassified_churned``.
     """
 
     def __init__(self, client: RinsedClient) -> None:
@@ -53,29 +61,29 @@ class CohortResource:
     ) -> CohortRetentionResult:
         """Retention grid: cohort_month x period_month.
 
+        Cohort = new/rejoin members from ``FCT_MEMBERSHIPS``.
+        Retained at period N = members with a recharge N months after
+        signup.  Matches Rinsed's cohort triangle.
+
         Args:
             start: Earliest cohort month to include.
             end: Latest cohort month to include.
             locations: Filter by location name(s).
-
-        Returns:
-            Matrix of member counts and churn counts per cohort per
-            tenure period.  Period 0 = signup month (initial cohort size).
         """
         sql, params = cohort_retention_grid_sql(start, end, locations)
         df = self._client._execute(sql, params)
 
-        rows = [
-            CohortPeriodRow(
-                cohort_month=str(r["cohort_month"]),
-                period_month=_safe_int(r["period_month"]),
-                members=_safe_int(r["members"]),
-                churned=_safe_int(r["churned"]),
-                voluntary_churned=_safe_int(r["voluntary_churned"]),
-                involuntary_churned=_safe_int(r["involuntary_churned"]),
-            )
-            for _, r in df.iterrows()
-        ]
+        raw = []
+        for _, r in df.iterrows():
+            raw.append({
+                "cohort_month": str(r["cohort_month"]),
+                "period_month": _safe_int(r["period_month"]),
+                "members": _safe_int(r["members"]),
+                "voluntary_churned": _safe_int(r["voluntary_churned"]),
+                "involuntary_churned": _safe_int(r["involuntary_churned"]),
+            })
+
+        rows = _compute_churn(raw)
 
         cohorts = {r.cohort_month for r in rows}
         max_period = max((r.period_month for r in rows), default=0)
@@ -102,18 +110,18 @@ class CohortResource:
         sql, params = cohort_retention_by_plan_sql(start, end, locations)
         df = self._client._execute(sql, params)
 
-        rows = [
-            CohortPlanPeriodRow(
-                cohort_month=str(r["cohort_month"]),
-                period_month=_safe_int(r["period_month"]),
-                join_plan_name=str(r["join_plan_name"]) if r["join_plan_name"] else "Unknown",
-                members=_safe_int(r["members"]),
-                churned=_safe_int(r["churned"]),
-                voluntary_churned=_safe_int(r["voluntary_churned"]),
-                involuntary_churned=_safe_int(r["involuntary_churned"]),
-            )
-            for _, r in df.iterrows()
-        ]
+        raw = []
+        for _, r in df.iterrows():
+            raw.append({
+                "cohort_month": str(r["cohort_month"]),
+                "period_month": _safe_int(r["period_month"]),
+                "join_plan_name": str(r["join_plan_name"]) if r["join_plan_name"] else "Unknown",
+                "members": _safe_int(r["members"]),
+                "voluntary_churned": _safe_int(r["voluntary_churned"]),
+                "involuntary_churned": _safe_int(r["involuntary_churned"]),
+            })
+
+        rows = _compute_churn_by_plan(raw)
 
         cohorts = {r.cohort_month for r in rows}
         plans = {r.join_plan_name for r in rows}
@@ -137,9 +145,7 @@ class CohortResource:
         """Member-level drill-down for cohorts in the date range.
 
         Returns one row per member showing their latest state: current
-        plan, tenure, churn status, revenue, and wash activity.  Use
-        this to inspect individual members within a cohort or export
-        member lists.
+        plan, tenure, churn status, revenue, and wash activity.
 
         Args:
             start: Earliest cohort month to include.
@@ -196,3 +202,58 @@ class CohortResource:
             period_start=str(start),
             period_end=str(end),
         )
+
+
+def _compute_churn(raw: list[dict]) -> list[CohortPeriodRow]:
+    """Derive churned / unclassified from period-over-period member deltas."""
+    by_cohort: dict[str, list[dict]] = defaultdict(list)
+    for r in raw:
+        by_cohort[r["cohort_month"]].append(r)
+
+    rows: list[CohortPeriodRow] = []
+    for cohort_month in sorted(by_cohort):
+        periods = sorted(by_cohort[cohort_month], key=lambda x: x["period_month"])
+        for i, p in enumerate(periods):
+            prev_members = periods[i - 1]["members"] if i > 0 else p["members"]
+            churned = max(prev_members - p["members"], 0)
+            vol = p["voluntary_churned"]
+            inv = p["involuntary_churned"]
+            unclassified = max(churned - vol - inv, 0)
+            rows.append(CohortPeriodRow(
+                cohort_month=p["cohort_month"],
+                period_month=p["period_month"],
+                members=p["members"],
+                churned=churned,
+                voluntary_churned=vol,
+                involuntary_churned=inv,
+                unclassified_churned=unclassified,
+            ))
+    return rows
+
+
+def _compute_churn_by_plan(raw: list[dict]) -> list[CohortPlanPeriodRow]:
+    """Derive churned / unclassified for plan-level grid."""
+    by_key: dict[tuple[str, str], list[dict]] = defaultdict(list)
+    for r in raw:
+        by_key[(r["cohort_month"], r["join_plan_name"])].append(r)
+
+    rows: list[CohortPlanPeriodRow] = []
+    for key in sorted(by_key):
+        periods = sorted(by_key[key], key=lambda x: x["period_month"])
+        for i, p in enumerate(periods):
+            prev_members = periods[i - 1]["members"] if i > 0 else p["members"]
+            churned = max(prev_members - p["members"], 0)
+            vol = p["voluntary_churned"]
+            inv = p["involuntary_churned"]
+            unclassified = max(churned - vol - inv, 0)
+            rows.append(CohortPlanPeriodRow(
+                cohort_month=p["cohort_month"],
+                period_month=p["period_month"],
+                join_plan_name=p["join_plan_name"],
+                members=p["members"],
+                churned=churned,
+                voluntary_churned=vol,
+                involuntary_churned=inv,
+                unclassified_churned=unclassified,
+            ))
+    return rows

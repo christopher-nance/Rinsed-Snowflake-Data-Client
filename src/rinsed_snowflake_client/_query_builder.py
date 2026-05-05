@@ -652,135 +652,290 @@ def recharge_churn_sql(
 # ---------------------------------------------------------------------------
 
 
+def _cohort_cte(
+    sql: str,
+    params: list,
+    start: DateInput | None,
+    end: DateInput | None,
+    locations: Locations,
+) -> str:
+    """Build the ``cohort`` CTE from FCT_MEMBERSHIPS and apply filters.
+
+    Appends date, location, and exclusion filters inside the CTE, then
+    closes the deduplication subquery.  Returns the SQL string positioned
+    after the closing of the ``cohort`` CTE (ready for the next CTE or
+    main SELECT).
+    """
+    sql = _apply_filters(
+        sql, params, "created_at", start, end, locations, cast_date=True
+    )
+    sql += """
+        ) WHERE rn = 1
+    ),
+    """
+    return sql
+
+
 def cohort_retention_grid_sql(
     start: DateInput | None, end: DateInput | None, locations: Locations
 ) -> tuple[str, list]:
-    """Retention grid: cohort_month x period_month with member/churn counts.
+    """Retention grid using FCT_MEMBERSHIPS recharges (matches Rinsed).
 
-    Each row = one cohort at one tenure period.  ``members`` is how many
-    were still billing at that period.  ``churned`` is how many left
-    during that period (churn_period = period_month).
+    Cohort = new/rejoin members from FCT_MEMBERSHIPS.
+    Retained at period N = members with a ``renewed membership``
+    transaction N months after their cohort month.
+    Vol/invol overlay from MEMBER_HISTORY (may not cover all churn).
     """
     sql = """
-        SELECT
-            cohort_month,
-            period_month,
-            COUNT(DISTINCT rinsed_membership_id) AS members,
-            COUNT(DISTINCT CASE WHEN churn_period = period_month
-                THEN rinsed_membership_id END) AS churned,
-            COUNT(DISTINCT CASE WHEN churn_period = period_month
-                AND churn_type = 'terminated'
-                THEN rinsed_membership_id END) AS voluntary_churned,
-            COUNT(DISTINCT CASE WHEN churn_period = period_month
-                AND churn_type = 'expired'
-                THEN rinsed_membership_id END) AS involuntary_churned
-        FROM member_history
-        WHERE 1=1
+        WITH cohort AS (
+            SELECT rinsed_membership_id, cohort_month, location_name
+            FROM (
+                SELECT
+                    rinsed_membership_id,
+                    DATE_TRUNC('MONTH', DATE(created_at)) AS cohort_month,
+                    location_name,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY rinsed_membership_id,
+                                     DATE_TRUNC('MONTH', DATE(created_at))
+                        ORDER BY created_at
+                    ) AS rn
+                FROM fct_memberships
+                WHERE transaction_category IN ('new membership', 'rejoin membership')
+                  AND rinsed_membership_id IS NOT NULL
     """.strip()
     params: list = []
-    sql = _apply_filters(sql, params, "cohort_month", start, end, locations)
-    sql += " GROUP BY cohort_month, period_month ORDER BY cohort_month, period_month"
-    return (sql, params)
+    sql = _cohort_cte(sql, params, start, end, locations)
+    sql += """
+    member_periods AS (
+        SELECT rinsed_membership_id, cohort_month, 0 AS period_month
+        FROM cohort
+        UNION
+        SELECT c.rinsed_membership_id, c.cohort_month,
+               DATEDIFF(MONTH, c.cohort_month,
+                        DATE_TRUNC('MONTH', DATE(r.created_at)))
+        FROM cohort c
+        INNER JOIN fct_memberships r
+            ON c.rinsed_membership_id = r.rinsed_membership_id
+        WHERE r.transaction_category = 'renewed membership'
+          AND DATE_TRUNC('MONTH', DATE(r.created_at)) > c.cohort_month
+    ),
+    churn_overlay AS (
+        SELECT DISTINCT
+            c.rinsed_membership_id,
+            c.cohort_month,
+            mh.churn_type,
+            mh.churn_period AS churn_at_period
+        FROM cohort c
+        INNER JOIN member_history mh
+            ON c.rinsed_membership_id = mh.rinsed_membership_id
+            AND mh.cohort_month = c.cohort_month
+        WHERE mh.churn_type IS NOT NULL
+    )
+    SELECT
+        mp.cohort_month,
+        mp.period_month,
+        COUNT(DISTINCT mp.rinsed_membership_id) AS members,
+        COUNT(DISTINCT CASE WHEN co.churn_at_period = mp.period_month
+            AND co.churn_type = 'terminated'
+            THEN co.rinsed_membership_id END) AS voluntary_churned,
+        COUNT(DISTINCT CASE WHEN co.churn_at_period = mp.period_month
+            AND co.churn_type = 'expired'
+            THEN co.rinsed_membership_id END) AS involuntary_churned
+    FROM member_periods mp
+    LEFT JOIN churn_overlay co
+        ON mp.rinsed_membership_id = co.rinsed_membership_id
+        AND mp.cohort_month = co.cohort_month
+    GROUP BY mp.cohort_month, mp.period_month
+    ORDER BY mp.cohort_month, mp.period_month
+    """
+    return (sql.strip(), params)
 
 
 def cohort_retention_by_plan_sql(
     start: DateInput | None, end: DateInput | None, locations: Locations
 ) -> tuple[str, list]:
-    """Retention grid sliced by join_plan_name (plan at signup)."""
+    """Retention grid sliced by plan at signup (from FCT_MEMBERSHIPS)."""
     sql = """
-        SELECT
-            cohort_month,
-            period_month,
-            join_plan_name,
-            COUNT(DISTINCT rinsed_membership_id) AS members,
-            COUNT(DISTINCT CASE WHEN churn_period = period_month
-                THEN rinsed_membership_id END) AS churned,
-            COUNT(DISTINCT CASE WHEN churn_period = period_month
-                AND churn_type = 'terminated'
-                THEN rinsed_membership_id END) AS voluntary_churned,
-            COUNT(DISTINCT CASE WHEN churn_period = period_month
-                AND churn_type = 'expired'
-                THEN rinsed_membership_id END) AS involuntary_churned
-        FROM member_history
-        WHERE 1=1
+        WITH cohort AS (
+            SELECT rinsed_membership_id, cohort_month, location_name,
+                   join_plan_name
+            FROM (
+                SELECT
+                    rinsed_membership_id,
+                    DATE_TRUNC('MONTH', DATE(created_at)) AS cohort_month,
+                    location_name,
+                    plan_name AS join_plan_name,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY rinsed_membership_id,
+                                     DATE_TRUNC('MONTH', DATE(created_at))
+                        ORDER BY created_at
+                    ) AS rn
+                FROM fct_memberships
+                WHERE transaction_category IN ('new membership', 'rejoin membership')
+                  AND rinsed_membership_id IS NOT NULL
     """.strip()
     params: list = []
-    sql = _apply_filters(sql, params, "cohort_month", start, end, locations)
-    sql += " GROUP BY cohort_month, period_month, join_plan_name"
-    sql += " ORDER BY cohort_month, period_month, join_plan_name"
-    return (sql, params)
+    sql = _cohort_cte(sql, params, start, end, locations)
+    sql += """
+    member_periods AS (
+        SELECT rinsed_membership_id, cohort_month, join_plan_name,
+               0 AS period_month
+        FROM cohort
+        UNION
+        SELECT c.rinsed_membership_id, c.cohort_month, c.join_plan_name,
+               DATEDIFF(MONTH, c.cohort_month,
+                        DATE_TRUNC('MONTH', DATE(r.created_at)))
+        FROM cohort c
+        INNER JOIN fct_memberships r
+            ON c.rinsed_membership_id = r.rinsed_membership_id
+        WHERE r.transaction_category = 'renewed membership'
+          AND DATE_TRUNC('MONTH', DATE(r.created_at)) > c.cohort_month
+    ),
+    churn_overlay AS (
+        SELECT DISTINCT
+            c.rinsed_membership_id,
+            c.cohort_month,
+            c.join_plan_name,
+            mh.churn_type,
+            mh.churn_period AS churn_at_period
+        FROM cohort c
+        INNER JOIN member_history mh
+            ON c.rinsed_membership_id = mh.rinsed_membership_id
+            AND mh.cohort_month = c.cohort_month
+        WHERE mh.churn_type IS NOT NULL
+    )
+    SELECT
+        mp.cohort_month,
+        mp.period_month,
+        mp.join_plan_name,
+        COUNT(DISTINCT mp.rinsed_membership_id) AS members,
+        COUNT(DISTINCT CASE WHEN co.churn_at_period = mp.period_month
+            AND co.churn_type = 'terminated'
+            THEN co.rinsed_membership_id END) AS voluntary_churned,
+        COUNT(DISTINCT CASE WHEN co.churn_at_period = mp.period_month
+            AND co.churn_type = 'expired'
+            THEN co.rinsed_membership_id END) AS involuntary_churned
+    FROM member_periods mp
+    LEFT JOIN churn_overlay co
+        ON mp.rinsed_membership_id = co.rinsed_membership_id
+        AND mp.cohort_month = co.cohort_month
+        AND mp.join_plan_name = co.join_plan_name
+    GROUP BY mp.cohort_month, mp.period_month, mp.join_plan_name
+    ORDER BY mp.cohort_month, mp.period_month, mp.join_plan_name
+    """
+    return (sql.strip(), params)
 
 
 def cohort_members_sql(
     start: DateInput | None, end: DateInput | None, locations: Locations
 ) -> tuple[str, list]:
-    """One row per member in the cohort range with latest state and wash counts.
+    """One row per member with latest state, churn overlay, and wash counts.
 
-    Uses ROW_NUMBER to collapse the per-billing-period rows down to
-    the most recent period per member, then LEFT JOINs wash activity
-    from FCT_REDEMPTIONS + NM&R/RM&R combos from FCT_REVENUE.
+    Cohort defined from FCT_MEMBERSHIPS (matching Rinsed's triangle).
+    Churn type from MEMBER_HISTORY where available.
     """
     sql = """
-        WITH member_latest AS (
-            SELECT
-                rinsed_membership_id,
-                location_name,
-                join_date,
-                join_plan_name,
-                cohort_month,
-                plan_name,
-                revenue,
-                period_month AS tenure_months,
-                churn_date,
-                churn_type,
-                churn_period
+        WITH cohort AS (
+            SELECT rinsed_membership_id, cohort_month, location_name,
+                   join_plan_name, join_date
             FROM (
-                SELECT *,
+                SELECT
+                    rinsed_membership_id,
+                    DATE_TRUNC('MONTH', DATE(created_at)) AS cohort_month,
+                    location_name,
+                    plan_name AS join_plan_name,
+                    DATE(created_at) AS join_date,
                     ROW_NUMBER() OVER (
-                        PARTITION BY rinsed_membership_id
-                        ORDER BY period_month DESC
+                        PARTITION BY rinsed_membership_id,
+                                     DATE_TRUNC('MONTH', DATE(created_at))
+                        ORDER BY created_at
                     ) AS rn
-                FROM member_history
-                WHERE rinsed_membership_id IS NOT NULL
+                FROM fct_memberships
+                WHERE transaction_category IN ('new membership', 'rejoin membership')
+                  AND rinsed_membership_id IS NOT NULL
     """.strip()
     params: list = []
-    sql = _apply_filters(sql, params, "cohort_month", start, end, locations)
+    sql = _cohort_cte(sql, params, start, end, locations)
     sql += """
-            ) ranked
-            WHERE rn = 1
-        ),
-        all_washes AS (
-            SELECT rinsed_membership_id, created_at
-            FROM fct_redemptions
-            WHERE rinsed_membership_id IS NOT NULL
-            UNION ALL
-            SELECT rinsed_membership_id, created_at
-            FROM fct_revenue
-            WHERE transaction_category IN (
-                'New Membership & Redemption',
-                'Renewed Membership & Redemption'
-            )
-            AND rinsed_membership_id IS NOT NULL
-        ),
-        wash_stats AS (
-            SELECT
-                w.rinsed_membership_id,
-                COUNT(*) AS wash_count,
-                MAX(DATE(w.created_at)) AS last_wash_date,
-                MIN(DATE(w.created_at)) AS first_wash_date
-            FROM all_washes w
-            INNER JOIN member_latest m
-                ON w.rinsed_membership_id = m.rinsed_membership_id
-            GROUP BY w.rinsed_membership_id
-        )
+    latest_recharge AS (
         SELECT
-            m.*,
-            COALESCE(ws.wash_count, 0) AS wash_count,
-            ws.last_wash_date,
-            ws.first_wash_date
-        FROM member_latest m
-        LEFT JOIN wash_stats ws
-            ON m.rinsed_membership_id = ws.rinsed_membership_id
-        ORDER BY m.cohort_month, m.location_name, m.join_date
+            c.rinsed_membership_id,
+            c.cohort_month,
+            r.plan_name,
+            r.revenue,
+            DATEDIFF(MONTH, c.cohort_month,
+                     DATE_TRUNC('MONTH', DATE(r.created_at))) AS tenure_months
+        FROM cohort c
+        INNER JOIN fct_memberships r
+            ON c.rinsed_membership_id = r.rinsed_membership_id
+        WHERE r.transaction_category = 'renewed membership'
+          AND DATE_TRUNC('MONTH', DATE(r.created_at)) > c.cohort_month
+        QUALIFY ROW_NUMBER() OVER (
+            PARTITION BY c.rinsed_membership_id, c.cohort_month
+            ORDER BY r.created_at DESC
+        ) = 1
+    ),
+    churn_info AS (
+        SELECT DISTINCT
+            c.rinsed_membership_id,
+            c.cohort_month,
+            mh.churn_date,
+            mh.churn_type,
+            mh.churn_period
+        FROM cohort c
+        INNER JOIN member_history mh
+            ON c.rinsed_membership_id = mh.rinsed_membership_id
+            AND mh.cohort_month = c.cohort_month
+        WHERE mh.churn_type IS NOT NULL
+    ),
+    all_washes AS (
+        SELECT rinsed_membership_id, created_at
+        FROM fct_redemptions
+        WHERE rinsed_membership_id IS NOT NULL
+        UNION ALL
+        SELECT rinsed_membership_id, created_at
+        FROM fct_revenue
+        WHERE transaction_category IN (
+            'New Membership & Redemption',
+            'Renewed Membership & Redemption'
+        )
+        AND rinsed_membership_id IS NOT NULL
+    ),
+    wash_stats AS (
+        SELECT
+            w.rinsed_membership_id,
+            COUNT(*) AS wash_count,
+            MAX(DATE(w.created_at)) AS last_wash_date,
+            MIN(DATE(w.created_at)) AS first_wash_date
+        FROM all_washes w
+        INNER JOIN cohort c
+            ON w.rinsed_membership_id = c.rinsed_membership_id
+        GROUP BY w.rinsed_membership_id
+    )
+    SELECT
+        c.rinsed_membership_id,
+        c.location_name,
+        c.join_date,
+        c.join_plan_name,
+        c.cohort_month,
+        COALESCE(lr.plan_name, c.join_plan_name) AS plan_name,
+        COALESCE(lr.revenue, 0) AS revenue,
+        COALESCE(lr.tenure_months, 0) AS tenure_months,
+        ci.churn_date,
+        ci.churn_type,
+        ci.churn_period,
+        COALESCE(ws.wash_count, 0) AS wash_count,
+        ws.last_wash_date,
+        ws.first_wash_date
+    FROM cohort c
+    LEFT JOIN latest_recharge lr
+        ON c.rinsed_membership_id = lr.rinsed_membership_id
+        AND c.cohort_month = lr.cohort_month
+    LEFT JOIN churn_info ci
+        ON c.rinsed_membership_id = ci.rinsed_membership_id
+        AND c.cohort_month = ci.cohort_month
+    LEFT JOIN wash_stats ws
+        ON c.rinsed_membership_id = ws.rinsed_membership_id
+    ORDER BY c.cohort_month, c.location_name, c.join_date
     """
     return (sql.strip(), params)
